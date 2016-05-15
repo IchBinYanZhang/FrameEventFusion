@@ -5,7 +5,7 @@
 #include <cmath>
 #include <vector>
 #include <cstdint>
-
+#include <opencv/cv.h>
 
 #define NUM_BYTES_PER_EVENT 8    //AEDAT 2.0
 
@@ -62,6 +62,9 @@ int main(int argc, char** argv)
 
     for (int i = 1; i <= num_events; i++)
     {
+
+
+
 
         /// read y and trigger
         file.seekg(pos);
