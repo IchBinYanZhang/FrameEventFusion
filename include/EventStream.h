@@ -18,6 +18,7 @@ class EventStream
         void ReadFromFile(std::string filename, int max_event);
         void Clear();
         void EventShow(int acc_time);
+        void EventShow();
         void GetX(std::vector<uint8_t> out);
         void GetY(std::vector<uint8_t> out);
         void GetPolarity(std::vector<uint8_t> out);

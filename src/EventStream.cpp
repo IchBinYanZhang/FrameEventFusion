@@ -1,4 +1,3 @@
-
 #define NUM_BYTES_PER_EVENT 8    //AEDAT 2.0
 
 #include "EventStream.h"
@@ -123,9 +122,65 @@ void EventStream::EventShow(int acc_time)
         img.setTo(Scalar(128));
     }
 
-    std::cout << "- Display Ends." <<std::endl;
+//    std::cout << "- Display Ends." <<std::endl;
 
 }
+
+
+
+void EventStream::EventShow( )
+/// display the events between two triggered signals
+/// Between two trigger signals, N frames are displayed.
+{
+    cv::Mat img (this->nx,this->ny, CV_8UC1, cv::Scalar(128));
+    int nt = this->x.size();
+    cv::namedWindow("Event Visualization", cv::WINDOW_NORMAL);
+    int i = 0;
+    int j = 0;
+    int ii = 0;
+    int num_triggers = 0;
+    const int N = 3;
+    while(i < nt)
+    {
+        if (this->trigger[i]==0)
+        {
+            j++;
+        }
+        else
+        {
+            int event_per_frame = floor(j/N);
+            for (int f = 0; f < N; f++)
+            {
+                for (int p = ii+f*event_per_frame; p < ii+(f+1)*event_per_frame; p++  )
+                    img.at<uint8_t>(this->ny-1-this->y[p],this->x[p]) += uint8_t(255*(float(this->pol[p])-0.5f));
+
+                cv::imshow("Event Visualization",img);
+                cv::waitKey(50);
+                img.setTo(Scalar(128));
+            }
+
+            cv::waitKey(1000);
+
+            std::cout << "-----------------------------------"<<std::endl;
+            std::cout << " - previous trigger index = " << uint16_t(ii) << std::endl;
+            std::cout << " - current trigger index = " << uint16_t(i) << std::endl;
+            std::cout << " - #atomic events = " << uint16_t(j) <<std::endl;
+            j = 0;
+            num_triggers++;
+            ii = i;
+        }
+        i++;
+    }
+    std::cout << "-----------------------------------"<<std::endl;
+    std::cout << "- Display Ends." <<std::endl;
+    std::cout << "- #triggers = " << num_triggers <<std::endl;
+
+
+}
+
+
+
+
 
 void EventStream::GetX(std::vector<uint8_t> out)
 {
