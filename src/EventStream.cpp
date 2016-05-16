@@ -119,11 +119,11 @@ void EventStream::EventShow(int acc_time)
         for (int j = 0; j < acc_time; j++)
             img.at<uint8_t>(this->ny-1-this->y[i*acc_time+j],this->x[i*acc_time+j]) += uint8_t(255*(float(this->pol[i*acc_time+j])-0.5f));
         cv::imshow("Event Visualization",img);
-        cv::waitKey(0);
+        cv::waitKey(25);
         img.setTo(Scalar(128));
     }
 
-    std::cout << "- Display Ends." <<std::endl;
+    std::cout << "- All events are displayed." <<std::endl;
 
 }
 
