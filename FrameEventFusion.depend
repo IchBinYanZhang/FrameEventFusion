@@ -1,9 +1,7 @@
 # depslib dependency file v1.0
-<<<<<<< HEAD
-1463335056 source:/home/yzhang/workspace/FrameEventFusion/main.cpp
-=======
-1463411115 source:/home/yzhang/workspace/FrameEventFusion/main.cpp
->>>>>>> WrittingClass-EventStream
+19836752 <<<<<<< HEAD
+
+1463434277 source:/home/yzhang/workspace/FrameEventFusion/main.cpp
 	<iostream>
 	<cstdlib>
 	<fstream>
@@ -14,15 +12,19 @@
 	<opencv/cv.h>
 	"EventStream.h"
 	"FrameStream.h"
+	"FrameEventFuser.h"
 
-1463406094 source:/home/yzhang/workspace/FrameEventFusion/src/EventStream.cpp
+1463400308 ttingClass-EventStream
+	<iostream>
+	<cstdlib>
+	<fstream>
+	<cstring>
+	<cmath>
+	<vector>
+	<cstdint>
+	<opencv/cv.h>
 	"EventStream.h"
-
-<<<<<<< HEAD
-1463334137 /home/yzhang/workspace/FrameEventFusion/include/EventStream.h
-=======
-1463400308 /home/yzhang/workspace/FrameEventFusion/include/EventStream.h
->>>>>>> WrittingClass-EventStream
+	"FrameStream.h"
 	<iostream>
 	<cstdlib>
 	<fstream>
@@ -33,13 +35,40 @@
 	<opencv/cv.hpp>
 	<opencv/cxcore.hpp>
 
-1463417093 source:/home/yzhang/workspace/FrameEventFusion/src/FrameStream.cpp
+1463436923 source:/home/yzhang/workspace/FrameEventFusion/src/EventStream.cpp
+	"EventStream.h"
+
+1463406094 D
+
+1463436891 /home/yzhang/workspace/FrameEventFusion/include/EventStream.h
+	<iostream>
+	<cstdlib>
+	<fstream>
+	<cstring>
+	<cmath>
+	<vector>
+	<cstdint>
+	<opencv/cv.hpp>
+	<opencv/cxcore.hpp>
+
+1463436812 source:/home/yzhang/workspace/FrameEventFusion/src/FrameStream.cpp
 	"FrameStream.h"
 
-1463419165 /home/yzhang/workspace/FrameEventFusion/include/FrameStream.h
+1463436796 /home/yzhang/workspace/FrameEventFusion/include/FrameStream.h
 	<opencv/cv.hpp>
 	<opencv/highgui.h>
 	<iostream>
 	<vector>
 	<fstream>
+
+1463436862 source:/home/yzhang/workspace/FrameEventFusion/src/FrameEventFuser.cpp
+	"FrameEventFuser.h"
+
+1463434726 /home/yzhang/workspace/FrameEventFusion/include/FrameEventFuser.h
+	<cstdlib>
+	<vector>
+	<opencv/cv.hpp>
+	<opencv/highgui.h>
+	"FrameStream.h"
+	"EventStream.h"
 

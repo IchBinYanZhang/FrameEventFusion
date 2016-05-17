@@ -8,7 +8,7 @@ FrameStream::FrameStream()
 
 
 
-FrameStream::FrameStream(std::string file_video, std::string file_timestamp)
+FrameStream::FrameStream(std::string& file_video, std::string& file_timestamp)
 {
     this->time_stamp.clear();
     cap.open(file_video);
@@ -35,8 +35,7 @@ FrameStream::FrameStream(std::string file_video, std::string file_timestamp)
         this->time_stamp.push_back(ts);
     }
 
-
-
+    this->_filename = file_video;
 
 }
 
@@ -46,7 +45,7 @@ void FrameStream::FrameShow()
     cv:: Mat frame;
     namedWindow("Frame Visualization", cv::WINDOW_NORMAL);
     int num_frames = this->time_stamp.size();
-
+    std:: cout << num_frames << std::endl;
     for(int i = 0; i < num_frames; i++)
     {
         this->cap >> frame;
@@ -64,14 +63,14 @@ void FrameStream::FrameShow()
 }
 
 
-void FrameStream::GetTimestamp(std::vector<uint64_t> out)
+void FrameStream::GetTimestamp(std::vector<uint64_t>& out)
 {
     out = this->time_stamp;
 }
 
-void FrameStream::GetFrameStream(cv::VideoCapture out)
+void FrameStream::GetFrameFile(std::string& out)
 {
-    out = this->cap;
+    out = this->_filename;
 }
 
 

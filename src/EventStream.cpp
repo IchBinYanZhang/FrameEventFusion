@@ -17,7 +17,7 @@ EventStream::EventStream()
 
 }
 
-void EventStream::ReadFromFile(std::string filename, int maxevents)
+void EventStream::ReadFromFile(std::string& filename, int maxevents)
 {
 
 
@@ -122,9 +122,8 @@ void EventStream::EventShow(int acc_time)
         img.setTo(Scalar(128));
     }
 
-<<<<<<< HEAD
     std::cout << "- All events are displayed." <<std::endl;
-=======
+
 //    std::cout << "- Display Ends." <<std::endl;
 
 }
@@ -158,11 +157,11 @@ void EventStream::EventShow( )
                     img.at<uint8_t>(this->ny-1-this->y[p],this->x[p]) += uint8_t(255*(float(this->pol[p])-0.5f));
 
                 cv::imshow("Event Visualization",img);
-                cv::waitKey(50);
+                cv::waitKey(5);
                 img.setTo(Scalar(128));
             }
 
-            cv::waitKey(1000);
+            cv::waitKey(10);
 
             std::cout << "-----------------------------------"<<std::endl;
             std::cout << " - previous trigger index = " << uint16_t(ii) << std::endl;
@@ -178,7 +177,7 @@ void EventStream::EventShow( )
     std::cout << "- Display Ends." <<std::endl;
     std::cout << "- #triggers = " << num_triggers <<std::endl;
 
->>>>>>> WrittingClass-EventStream
+
 
 }
 
@@ -186,22 +185,22 @@ void EventStream::EventShow( )
 
 
 
-void EventStream::GetX(std::vector<uint8_t> out)
+void EventStream::GetX(std::vector<uint8_t>& out)
 {
     out = this->x;
 }
 
-void EventStream::GetY(std::vector<uint8_t> out)
+void EventStream::GetY(std::vector<uint8_t>& out)
 {
     out = this->y;
 }
 
-void EventStream::GetPolarity(std::vector<uint8_t> out)
+void EventStream::GetPolarity(std::vector<uint8_t>& out)
 {
     out = this->pol;
 }
 
-void EventStream::GetTrigger(std::vector<uint8_t> out)
+void EventStream::GetTrigger(std::vector<uint8_t>& out)
 {
     out = this->trigger;
 }

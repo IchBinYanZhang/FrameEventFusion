@@ -9,17 +9,19 @@
 
 class FrameStream
 {
+    friend class FrameEventFuser;
     public:
         FrameStream();
-        FrameStream(std::string filename_video, std::string filename_timestamp);
+        FrameStream(std::string& filename_video, std::string& filename_timestamp);
         virtual ~FrameStream();
-        void GetTimestamp(std::vector<uint64_t> out);
-        void GetFrameStream(cv::VideoCapture out);
+        void GetTimestamp(std::vector<uint64_t>& out);
+        void GetFrameFile(std::string& out);
         void FrameShow();
     protected:
     private:
         cv::VideoCapture cap;
         std::vector<uint64_t> time_stamp;
+        std::string _filename;
 };
 
 #endif // FRAMESTREAM_H
