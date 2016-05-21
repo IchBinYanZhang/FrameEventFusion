@@ -76,7 +76,7 @@ void EventStream::ReadFromFile(std::string& filename, int maxevents)
         /// read x and pol
         pos++;  /// file pointer shifted by one Char (8 bits)
         file.read(&memblock,1);
-        this->pol.push_back((memblock & 0x01));
+        this->pol.push_back(1-(memblock & 0x01));
         this->x.push_back(((memblock >> 1) & 0x7f));
 
 

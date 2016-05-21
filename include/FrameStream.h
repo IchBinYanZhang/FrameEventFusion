@@ -10,6 +10,7 @@
 class FrameStream
 {
     friend class FrameEventFuser;
+    friend class StereoVision;
     public:
         FrameStream();
         FrameStream(std::string& filename_video, std::string& filename_timestamp);

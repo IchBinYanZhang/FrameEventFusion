@@ -18,26 +18,18 @@ int main(int argc, char** argv)
     /// argument transfer and setup
     if(argc != 5)
     {
-        std::cerr<< "./program [filename_frame] [filename_timestamp] [filename_events] [maximum_events]" <<std::endl;
+        std::cerr<< "./program [filename1] [filename_timestamp1] [filename2] [filename_timestamp2]" <<std::endl;
         return -1;
     }
     std::string filename_frame= argv[1];
     std::string filename_timestamp = argv[2];
-    std::string filename_event = argv[3];
-    int maxevents = atoi(argv[4]);
+    std::string filename_frame2= argv[3];;
+    std::string filename_timestamp2 = argv[4];
 
-    /// event processing
-    EventStream stream;
-    stream.ReadFromFile(filename_event, maxevents);
-//    stream.EventShow();
 
-    /// frame processing
     FrameStream frames(filename_frame, filename_timestamp);
-//    frames.FrameShow();
+    FrameStream frames2(filename_frame2, filename_timestamp2);
 
-    /// fuser
-    FrameEventFuser fuser(frames, stream);
-    fuser.FrameEventShow();
 
     return 0;
 

@@ -54,8 +54,12 @@
 			<Add option="-Wall" />
 		</Compiler>
 		<Unit filename="include/EventStream.h" />
+		<Unit filename="include/FrameEventFuser.h" />
+		<Unit filename="include/FrameStream.h" />
 		<Unit filename="main.cpp" />
 		<Unit filename="src/EventStream.cpp" />
+		<Unit filename="src/FrameEventFuser.cpp" />
+		<Unit filename="src/FrameStream.cpp" />
 		<Extensions>
 			<code_completion />
 			<envvars />

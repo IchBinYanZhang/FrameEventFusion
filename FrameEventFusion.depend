@@ -35,7 +35,7 @@
 	<opencv/cv.hpp>
 	<opencv/cxcore.hpp>
 
-1463436923 source:/home/yzhang/workspace/FrameEventFusion/src/EventStream.cpp
+1463566795 source:/home/yzhang/workspace/FrameEventFusion/src/EventStream.cpp
 	"EventStream.h"
 
 1463406094 D
@@ -54,19 +54,20 @@
 1463436812 source:/home/yzhang/workspace/FrameEventFusion/src/FrameStream.cpp
 	"FrameStream.h"
 
-1463436796 /home/yzhang/workspace/FrameEventFusion/include/FrameStream.h
+1463844713 /home/yzhang/workspace/FrameEventFusion/include/FrameStream.h
 	<opencv/cv.hpp>
 	<opencv/highgui.h>
 	<iostream>
 	<vector>
 	<fstream>
 
-1463436862 source:/home/yzhang/workspace/FrameEventFusion/src/FrameEventFuser.cpp
+1463770371 source:/home/yzhang/workspace/FrameEventFusion/src/FrameEventFuser.cpp
 	"FrameEventFuser.h"
 
-1463434726 /home/yzhang/workspace/FrameEventFusion/include/FrameEventFuser.h
+1463841592 /home/yzhang/workspace/FrameEventFusion/include/FrameEventFuser.h
 	<cstdlib>
 	<vector>
+	<algorithm>
 	<opencv/cv.hpp>
 	<opencv/highgui.h>
 	"FrameStream.h"
