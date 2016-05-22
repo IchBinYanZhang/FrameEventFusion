@@ -86,7 +86,6 @@ void FrameEventFuser::Matching(cv::Mat& f_pre, cv::Mat& f_cur, cv::Mat& events, 
     /// interpolation of events image
     cv::Mat events_itp;
     cv::resize(events, events_itp, f_cur.size() );
-    std:: cout << "fdsafgasffdsafd" <<std::endl;
     ft.convertTo(ft,CV_8U);
     cv::imshow("ft", ft);
     cv::imshow("events",events_itp);

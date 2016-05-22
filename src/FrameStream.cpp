@@ -27,15 +27,20 @@ FrameStream::FrameStream(std::string& file_video, std::string& file_timestamp)
         exit(-2);
     }
 
-    uint64_t ts;
+    std::string ts;
 
     while(!file.eof())
     {
         file>>ts;
-        this->time_stamp.push_back(ts);
+        int temp432, temp754;
+        if (ts.size () ) {
+            sscanf (ts.c_str(), "%i,%i", &temp432, &temp754);
+            this->time_stamp.push_back(temp432);
+        }
     }
 
     this->_filename = file_video;
+    this->_filename_ts = file_timestamp;
 
 }
 
@@ -73,6 +78,10 @@ void FrameStream::GetFrameFile(std::string& out)
     out = this->_filename;
 }
 
+void FrameStream::GetTimestampFile(std::string& out)
+{
+    out = this->_filename_ts;
+}
 
 
 

@@ -17,12 +17,14 @@ class FrameStream
         virtual ~FrameStream();
         void GetTimestamp(std::vector<uint64_t>& out);
         void GetFrameFile(std::string& out);
+        void GetTimestampFile(std::string& out);
         void FrameShow();
     protected:
     private:
         cv::VideoCapture cap;
         std::vector<uint64_t> time_stamp;
         std::string _filename;
+        std::string _filename_ts;
 };
 
 #endif // FRAMESTREAM_H
