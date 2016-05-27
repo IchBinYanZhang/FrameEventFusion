@@ -8,6 +8,7 @@
 #include <opencv/cv.h>
 #include "FrameStream.h"
 #include "StereoVision.h"
+#include "FrameEventFuser.h"
 
 
 using namespace std;
@@ -15,15 +16,16 @@ int main(int argc, char** argv)
 {
 
     /// argument transfer and setup
-    if(argc != 5)
+    if(argc != 6)
     {
-        std::cerr<< "./program [filename1] [filename_timestamp1] [filename2] [filename_timestamp2]" <<std::endl;
+        std::cerr<< "./program [filename1] [filename_timestamp1] [filename2] [filename_timestamp2] [events]" <<std::endl;
         return -1;
     }
     std::string filename_frame= argv[1];
     std::string filename_timestamp = argv[2];
     std::string filename_frame2= argv[3];;
     std::string filename_timestamp2 = argv[4];
+    std::string filename_events = argv[5];
 
     std:: cout << "read frame stream1" <<std::endl;
 
@@ -43,9 +45,6 @@ int main(int argc, char** argv)
     std::vector<cv::Mat> distCoeff;
     std::vector<cv::Mat> rotationMat;
     std::vector<cv::Mat> transVec;
-
-
-
 
     cv::Mat C = (cv::Mat_<double>(3,3)<< 1405.7, 0, 644.5536, 0, 1402.7, 491.14,0,0,1);
     intrisicMat.push_back(C);
@@ -71,7 +70,13 @@ int main(int argc, char** argv)
     sv.SetCamCalibration(intrisicMat, distCoeff, rotationMat, transVec);
 
 
-    sv.StereoShow(true);
+//    sv.StereoShow(true);
+//    sv.DepthShow();
+
+    EventStream events;
+    events.ReadFromFile(filename_events, 1000000000);
+    FrameEventFuser fuser (frames2, events);
+    fuser.FrameEventShow(false);
 
     return 0;
 
