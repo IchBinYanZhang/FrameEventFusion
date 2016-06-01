@@ -68,15 +68,15 @@ int main(int argc, char** argv)
 
 
     sv.SetCamCalibration(intrisicMat, distCoeff, rotationMat, transVec);
-
+    sv.DepthShow();
 
 //    sv.StereoShow(true);
 //    sv.DepthShow();
 
-    EventStream events;
-    events.ReadFromFile(filename_events, 1000000000);
-    FrameEventFuser fuser (frames2, events);
-    fuser.FrameEventShow(false);
+//    EventStream events;
+//    events.ReadFromFile(filename_events, 1000000000);
+//    FrameEventFuser fuser (frames2, events);
+//    fuser.FrameEventShow(false);
 
     return 0;
 

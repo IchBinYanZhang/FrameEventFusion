@@ -132,7 +132,6 @@ void FrameEventFuser::FrameEventShow(bool show_ft)
     if (num_triggers1 != num_frames)
     {
 
-
         while (i < nt)
         {
             if (this->_event_trigger[i]==0)
@@ -176,10 +175,7 @@ void FrameEventFuser::FrameEventShow(bool show_ft)
                     ft = frame-frame_pre+128;
                     ft.convertTo(ft, CV_8U);
                     cv::imshow("Temporal Difference Visualization",ft);
-
-
                 }
-
             }
             else
                 std::cout << " - Current Frame is empty." << std::endl;
@@ -195,13 +191,12 @@ void FrameEventFuser::FrameEventShow(bool show_ft)
                 cv::waitKey(10);
             }
             Matching(frame_pre, frame, event, event);
-
             cv::waitKey(10);
-
 
             std::cout << " - frame index = " << uint16_t(ff) << std::endl;
             std::cout << " - #atomic events = " << uint16_t(j) <<std::endl;
             std::cout << " - current event index = " << (i) <<std::endl;
+
             j = 0;
             num_triggers++;
             ii = i;

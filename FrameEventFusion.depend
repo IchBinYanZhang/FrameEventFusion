@@ -1,7 +1,7 @@
 # depslib dependency file v1.0
 19836752 <<<<<<< HEAD
 
-1463942601 source:/home/yzhang/workspace/FrameEventFusion/main.cpp
+1464697736 source:/home/yzhang/workspace/FrameEventFusion/main.cpp
 	<iostream>
 	<cstdlib>
 	<fstream>
@@ -12,6 +12,7 @@
 	<opencv/cv.h>
 	"FrameStream.h"
 	"StereoVision.h"
+	"FrameEventFuser.h"
 
 1463400308 ttingClass-EventStream
 	<iostream>
@@ -60,7 +61,7 @@
 	<vector>
 	<fstream>
 
-1463859669 source:/home/yzhang/workspace/FrameEventFusion/src/FrameEventFuser.cpp
+1464686259 source:/home/yzhang/workspace/FrameEventFusion/src/FrameEventFuser.cpp
 	"FrameEventFuser.h"
 
 1463841592 /home/yzhang/workspace/FrameEventFusion/include/FrameEventFuser.h
@@ -75,7 +76,7 @@
 1463996051 source:/home/yzhang/workspace/FrameEventFusion/src/StereoVision.cpp
 	"StereoVision.h"
 
-1463944640 /home/yzhang/workspace/FrameEventFusion/include/StereoVision.h
+1464821024 /home/yzhang/workspace/FrameEventFusion/include/StereoVision.h
 	<iostream>
 	<cstdlib>
 	<cmath>
