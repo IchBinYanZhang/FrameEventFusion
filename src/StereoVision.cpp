@@ -235,7 +235,7 @@ void StereoVision::BlockMatching(cv::Mat& frame1, cv::Mat& frame2, cv::Mat& fram
 
 
     int d_range = 50;
-    int window_radius = 7; // the window size is 2*window_radius+1
+    int window_radius = 10; // the window size is 2*window_radius+1
     cv::Mat block_f1 = cv::Mat::zeros(2*window_radius+1,2*window_radius+1, CV_32F);
     cv::Mat block_f2 = cv::Mat::zeros(2*window_radius+1,2*window_radius+1, CV_32F);
     std::vector<float> d_stack;
