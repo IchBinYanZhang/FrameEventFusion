@@ -32,6 +32,7 @@ class StereoVision
         void BlockMatching(cv::Mat& frame1, cv::Mat& frame2, cv::Mat& frame1_roi,cv::Mat& frame2_roi, cv::Mat& out);
         void BlockMatching2(cv::Mat& frame1, cv::Mat& frame2, cv::Mat& frame1_roi, cv::Mat& out);
         void Tracking3DInitialize(cv::Mat& f1_pre, cv::Mat& f2_pre, cv::Mat& f1_cur, cv::Mat& f2_cur);
+        void HomographyToGround(cv::Mat& img_cb, bool);
 
         virtual ~StereoVision();
     protected:
@@ -51,6 +52,7 @@ class StereoVision
         std::vector<cv::Mat> _dist_coeff;
         std::vector<cv::Mat> _rotation_mat;
         std::vector<cv::Mat> _trans_vec;
+        cv::Mat _H; // for the specific cam of the corresponding checkerboard image
         int _nx,_ny;
 
         ///params for image rectification

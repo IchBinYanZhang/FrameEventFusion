@@ -33,6 +33,7 @@
 					<Add option="-lopencv_photo" />
 					<Add option="-lopencv_ml" />
 					<Add option="-lopencv_imgproc" />
+					<Add option="-lopencv_ximgproc" />
 					<Add option="-lopencv_flann" />
 					<Add option="-lopencv_core" />
 				</Linker>
@@ -56,10 +57,14 @@
 		<Unit filename="include/EventStream.h" />
 		<Unit filename="include/FrameEventFuser.h" />
 		<Unit filename="include/FrameStream.h" />
+		<Unit filename="include/StereoVision.h" />
+		<Unit filename="include/StipDetector.h" />
 		<Unit filename="main.cpp" />
 		<Unit filename="src/EventStream.cpp" />
 		<Unit filename="src/FrameEventFuser.cpp" />
 		<Unit filename="src/FrameStream.cpp" />
+		<Unit filename="src/StereoVision.cpp" />
+		<Unit filename="src/StipDetector.cpp" />
 		<Extensions>
 			<code_completion />
 			<envvars />

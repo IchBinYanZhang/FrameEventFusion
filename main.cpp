@@ -16,9 +16,9 @@ int main(int argc, char** argv)
 {
 
     /// argument transfer and setup
-    if(argc != 6)
+    if(argc != 7)
     {
-        std::cerr<< "./program [filename1] [filename_timestamp1] [filename2] [filename_timestamp2] [events]" <<std::endl;
+        std::cerr<< "./program [filename1] [filename_timestamp1] [filename2] [filename_timestamp2] [events] [checkerboard image]" <<std::endl;
         return -1;
     }
     std::string filename_frame= argv[1];
@@ -26,7 +26,7 @@ int main(int argc, char** argv)
     std::string filename_frame2= argv[3];;
     std::string filename_timestamp2 = argv[4];
     std::string filename_events = argv[5];
-
+    std::string filename_cb = argv[6];
     std:: cout << "read frame stream1" <<std::endl;
 
     FrameStream frames(filename_frame, filename_timestamp);
@@ -68,7 +68,8 @@ int main(int argc, char** argv)
 
 
     sv.SetCamCalibration(intrisicMat, distCoeff, rotationMat, transVec);
-//    sv.DepthShow();
+    cv::Mat img_cb = cv::imread(filename_cb, CV_LOAD_IMAGE_COLOR);
+    sv.HomographyToGround(img_cb, false);
 
     sv.StereoShow(false);
 //    sv.DepthShow();

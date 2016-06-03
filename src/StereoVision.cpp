@@ -101,6 +101,40 @@ void StereoVision::SetFrameStream(FrameStream& s1, FrameStream& s2)
 }
 
 
+void StereoVision::HomographyToGround(cv::Mat& img_cb, bool img_show)
+{
+    int nx = 5;
+    int ny = 7;
+    cv::Size pattern_size(nx,ny);
+    std::vector<cv::Point2f> corners;
+    std::vector<cv::Point2f> corners_w;
+    bool patternfound = cv::findChessboardCorners(img_cb, pattern_size, corners,
+        CALIB_CB_ADAPTIVE_THRESH + CALIB_CB_NORMALIZE_IMAGE
+        + CALIB_CB_FAST_CHECK);
+
+    for(auto i = corners.begin(); i < corners.end(); i++)
+    {
+        double x;
+        double y;
+        int N = std::distance(corners.begin(), i);
+        x = N%nx;
+        y = (N-x)/nx;
+        corners_w.push_back(cv::Point2f(5*x+img_cb.cols/4,5*y+3*img_cb.rows/4));
+
+    }
+
+    _H = cv::findHomography(corners,corners_w);
+
+
+    if(img_show)
+    {
+
+        cv::drawChessboardCorners(img_cb, pattern_size, Mat(corners), patternfound);
+        cv::namedWindow("corners",WINDOW_NORMAL);
+        imshow("corners", img_cb);
+        cv::waitKey(0);
+    }
+}
 
 
 
@@ -409,7 +443,7 @@ void StereoVision::StereoShow(bool is_rectified)
     cv::namedWindow("stream1", cv::WINDOW_NORMAL);
     cv::namedWindow("stream2", cv::WINDOW_NORMAL);
     cv::Mat frame1, frame1_rec, frame1_pre;
-    cv::Mat frame2, frame2_rec, frame2_pre;
+    cv::Mat frame2, frame2_rec, frame2_pre, frame2_birdview;
 
     /// params for rectification
     cv::Mat R1, R2, P1, P2, Q;
@@ -417,6 +451,7 @@ void StereoVision::StereoShow(bool is_rectified)
     //Create transformation and rectification maps
     cv::Mat cam1map1, cam1map2;
     cv::Mat cam2map1, cam2map2;
+
 
     if( is_rectified)
     {
@@ -465,24 +500,23 @@ void StereoVision::StereoShow(bool is_rectified)
             this->_stream[0].read( frame1);
             this->_stream[1].read(frame2);
 
+
+            cv::warpPerspective(frame2, frame2_birdview, _H, cv::Size(frame1.cols, frame1.rows));
+
+
             cv::imshow("stream1",frame1);
             cv::imshow("stream2",frame2);
 
-            ImagePreprocessing(frame1);
-            ImagePreprocessing(frame2);
 
-            std::cout << "frame " << i <<std::endl;
-            if(i>100)
-            {
-                Tracking3DInitialize(frame1_pre, frame2_pre, frame1, frame2);
-            }
+
+            cv::imshow("birdview", frame2_birdview);
 
 
             frame1_pre = frame1;
             frame2_pre = frame2;
 
 
-            cv::waitKey(50);
+            cv::waitKey(10);
         }
 
     }
