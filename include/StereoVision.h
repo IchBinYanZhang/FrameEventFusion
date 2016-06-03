@@ -24,19 +24,20 @@ class StereoVision
         void ImageROIMoG2(cv::Mat& frame, cv::Mat& roi);
         void ImageROIAll( cv::Mat& frame, cv::Mat& roi);
 
-        void DepthEstimate(cv::Mat& frame1, cv::Mat& frame2);
-        void Tracking();
+        void DenseDepthEstimate(cv::Mat& frame1, cv::Mat& frame2);
+        void Tracking3D();
         void DepthShow();
         void StereoShow(bool is_rectified=false);
         void IsSynchronizedTwoStreams();
         void BlockMatching(cv::Mat& frame1, cv::Mat& frame2, cv::Mat& frame1_roi,cv::Mat& frame2_roi, cv::Mat& out);
         void BlockMatching2(cv::Mat& frame1, cv::Mat& frame2, cv::Mat& frame1_roi, cv::Mat& out);
+        void Tracking3DInitialize(cv::Mat& f1_pre, cv::Mat& f2_pre, cv::Mat& f1_cur, cv::Mat& f2_cur);
 
         virtual ~StereoVision();
     protected:
         void Close(const cv::Mat& src, cv::Mat& dst, int kernelsize);
-        float SAD(cv::Mat& set1, cv::Mat& set2);
-
+        inline float SAD(cv::Mat& set1, cv::Mat& set2);
+        inline void ImagePreprocessing(cv::Mat& f);
     private:
         /// frame streams and videos
         std::vector<cv::VideoCapture> _stream;

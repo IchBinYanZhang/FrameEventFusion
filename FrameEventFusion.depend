@@ -1,7 +1,7 @@
 # depslib dependency file v1.0
 19836752 <<<<<<< HEAD
 
-1464697736 source:/home/yzhang/workspace/FrameEventFusion/main.cpp
+1464950295 source:/home/yzhang/workspace/FrameEventFusion/main.cpp
 	<iostream>
 	<cstdlib>
 	<fstream>
@@ -73,10 +73,11 @@
 	"FrameStream.h"
 	"EventStream.h"
 
-1463996051 source:/home/yzhang/workspace/FrameEventFusion/src/StereoVision.cpp
+1464967574 source:/home/yzhang/workspace/FrameEventFusion/src/StereoVision.cpp
+	<opencv2/ximgproc.hpp>
 	"StereoVision.h"
 
-1464821024 /home/yzhang/workspace/FrameEventFusion/include/StereoVision.h
+1464948875 /home/yzhang/workspace/FrameEventFusion/include/StereoVision.h
 	<iostream>
 	<cstdlib>
 	<cmath>
@@ -86,7 +87,7 @@
 	"FrameStream.h"
 	"StipDetector.h"
 
-1463924577 /home/yzhang/workspace/FrameEventFusion/include/StipDetector.h
+1464966857 /home/yzhang/workspace/FrameEventFusion/include/StipDetector.h
 	<iostream>
 	<vector>
 	<highgui.h>
@@ -386,6 +387,54 @@
 1459625427 /usr/local/include/opencv/opencv2/optflow/motempl.hpp
 	"opencv2/core.hpp"
 
-1462918306 source:/home/yzhang/workspace/FrameEventFusion/src/StipDetector.cpp
+1464968348 source:/home/yzhang/workspace/FrameEventFusion/src/StipDetector.cpp
 	"StipDetector.h"
+
+1459625427 /usr/local/include/opencv/opencv2/ximgproc.hpp
+	"ximgproc/edge_filter.hpp"
+	"ximgproc/disparity_filter.hpp"
+	"ximgproc/sparse_match_interpolator.hpp"
+	"ximgproc/structured_edge_detection.hpp"
+	"ximgproc/seeds.hpp"
+	"ximgproc/segmentation.hpp"
+	"ximgproc/fast_hough_transform.hpp"
+	"ximgproc/estimated_covariance.hpp"
+	"ximgproc/weighted_median_filter.hpp"
+	"ximgproc/slic.hpp"
+	"ximgproc/lsc.hpp"
+
+1459625426 /usr/local/include/opencv/opencv2/ximgproc/edge_filter.hpp
+	<opencv2/core.hpp>
+
+1459625426 /usr/local/include/opencv/opencv2/ximgproc/disparity_filter.hpp
+	<opencv2/core.hpp>
+	<opencv2/calib3d.hpp>
+
+1459625426 /usr/local/include/opencv/opencv2/ximgproc/sparse_match_interpolator.hpp
+	<opencv2/core.hpp>
+
+1459625426 /usr/local/include/opencv/opencv2/ximgproc/structured_edge_detection.hpp
+	<opencv2/core.hpp>
+
+1459625426 /usr/local/include/opencv/opencv2/ximgproc/seeds.hpp
+	<opencv2/core.hpp>
+
+1459625426 /usr/local/include/opencv/opencv2/ximgproc/segmentation.hpp
+	<opencv2/core.hpp>
+
+1459625426 /usr/local/include/opencv/opencv2/ximgproc/fast_hough_transform.hpp
+	"opencv2/core.hpp"
+
+1459625426 /usr/local/include/opencv/opencv2/ximgproc/estimated_covariance.hpp
+	<opencv2/core.hpp>
+
+1459625426 /usr/local/include/opencv/opencv2/ximgproc/weighted_median_filter.hpp
+	<opencv2/core.hpp>
+	<string>
+
+1459625426 /usr/local/include/opencv/opencv2/ximgproc/slic.hpp
+	<opencv2/core.hpp>
+
+1459625426 /usr/local/include/opencv/opencv2/ximgproc/lsc.hpp
+	<opencv2/core.hpp>
 

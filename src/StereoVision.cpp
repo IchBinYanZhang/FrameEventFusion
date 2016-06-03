@@ -196,7 +196,7 @@ void StereoVision::ImageROIAll( cv::Mat& frame, cv::Mat& roi)
 
 
 
-float StereoVision::SAD(cv::Mat& set1, cv::Mat& set2)
+inline float StereoVision::SAD(cv::Mat& set1, cv::Mat& set2)
 {
     int nx = set1.cols;
     int ny = set1.rows;
@@ -245,9 +245,6 @@ void StereoVision::BlockMatching(cv::Mat& frame1, cv::Mat& frame2, cv::Mat& fram
     float* ptr_frame1_roi;
     float* ptr_frame2_roi;
     float* ptr_out;
-
-
-
 
 
     for(j = window_radius; j < ny-window_radius; j++ )
@@ -339,7 +336,7 @@ void StereoVision::BlockMatching2(cv::Mat& frame1, cv::Mat& frame2, cv::Mat& fra
 
 
 
-void StereoVision::DepthEstimate(cv::Mat& frame1, cv::Mat& frame2)
+void StereoVision::DenseDepthEstimate(cv::Mat& frame1, cv::Mat& frame2)
 /// frame1 and frame2 are un-rectified images
 {
 
@@ -383,7 +380,6 @@ void StereoVision::DepthEstimate(cv::Mat& frame1, cv::Mat& frame2)
 //    disp_map = disp_map/16.0f;
 
 
-
 }
 
 
@@ -396,7 +392,7 @@ void StereoVision::DepthShow()
     {
         _stream[0] >> frame1;
         _stream[1] >> frame2;
-        this->DepthEstimate(frame1,frame2);
+        this->DenseDepthEstimate(frame1,frame2);
         std::cout << "matching..."<<std::endl;
 
     }
@@ -412,8 +408,8 @@ void StereoVision::StereoShow(bool is_rectified)
     int num_frames =  this->_stream[0].get(CV_CAP_PROP_FRAME_COUNT);
     cv::namedWindow("stream1", cv::WINDOW_NORMAL);
     cv::namedWindow("stream2", cv::WINDOW_NORMAL);
-    cv::Mat frame1, frame1_rec;
-    cv::Mat frame2, frame2_rec;
+    cv::Mat frame1, frame1_rec, frame1_pre;
+    cv::Mat frame2, frame2_rec, frame2_pre;
 
     /// params for rectification
     cv::Mat R1, R2, P1, P2, Q;
@@ -472,6 +468,20 @@ void StereoVision::StereoShow(bool is_rectified)
             cv::imshow("stream1",frame1);
             cv::imshow("stream2",frame2);
 
+            ImagePreprocessing(frame1);
+            ImagePreprocessing(frame2);
+
+            std::cout << "frame " << i <<std::endl;
+            if(i>100)
+            {
+                Tracking3DInitialize(frame1_pre, frame2_pre, frame1, frame2);
+            }
+
+
+            frame1_pre = frame1;
+            frame2_pre = frame2;
+
+
             cv::waitKey(50);
         }
 
@@ -482,6 +492,65 @@ void StereoVision::StereoShow(bool is_rectified)
 
 }
 
+inline void StereoVision::ImagePreprocessing(cv::Mat& f)
+///this function will convert the image to gray value and Gaussian smooth it
+{
+    float sigma = 1.0;
+
+    cv::cvtColor(f, f, cv::COLOR_BGR2GRAY);
+    cv::GaussianBlur(f, f, cv::Size(0,0), sigma,sigma, BORDER_REFLECT);
+
+}
+
+
+void StereoVision::Tracking3DInitialize(cv::Mat& f1_pre, cv::Mat& f2_pre, cv::Mat& f1_cur, cv::Mat& f2_cur)
+{
+
+    /// keypoint detect
+    StipDetector detector1 (f1_cur,f1_pre);
+    StipDetector detector2 (f2_cur,f2_pre);
+    vector<cv::KeyPoint> kpt1;
+    vector<cv::KeyPoint> kpt2;
+    cv::Mat roi1, roi2;
+
+    detector1.SetMethodROI(StipDetector::TemporalThreshold);
+    detector1.detect(StipDetector::FeatureMethod::ORB);
+    detector1.GetKeyPoints(kpt1);
+//    detector1.GetROI(roi1);
+//    detector1.ClearPoints();
+//    detector1.VideoKeypointDisplay("frame1");
+
+    detector2.SetMethodROI(StipDetector::TemporalThreshold);
+    detector2.detect(StipDetector::FeatureMethod::ORB);
+    detector2.GetKeyPoints(kpt2);
+//    detector2.ClearPoints();
+//    detector2.VideoKeypointDisplay("frame2");
+//    detector2.GetROI(roi2);
+
+    /// keypoint description and matching
+    cv::Mat description1, description2;
+
+    detector1.GetDescriptorORB(description1);
+    detector2.GetDescriptorORB(description2);
+
+    cv::BFMatcher matcher(NORM_HAMMING);
+    std::vector<cv::DMatch> matches;
+
+    matcher.match(description1, description2, matches);
+    cv::Mat display_match;
+    drawMatches( f1_cur, kpt1, f2_cur, kpt2, matches, display_match );
+    namedWindow("matches", CV_WINDOW_NORMAL);
+    imshow("matches", display_match);
+
+
+
+
+//    cv::imshow("roi1",roi1);
+//    cv::imshow("roi2",roi2);
+
+
+
+}
 
 
 

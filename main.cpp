@@ -68,9 +68,9 @@ int main(int argc, char** argv)
 
 
     sv.SetCamCalibration(intrisicMat, distCoeff, rotationMat, transVec);
-    sv.DepthShow();
+//    sv.DepthShow();
 
-//    sv.StereoShow(true);
+    sv.StereoShow(false);
 //    sv.DepthShow();
 
 //    EventStream events;

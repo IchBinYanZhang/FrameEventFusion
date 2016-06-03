@@ -11,35 +11,40 @@
 using namespace std;
 using namespace cv;
 
+
+/// notice that this class only accept grayvalue images.
+
 class StipDetector
 {
     public:
-        enum RoiMethod {ScoreThreshold, GM2, SimpleFlow, TVL1Flow};
+        enum RoiMethod {TemporalThreshold, GM2, SimpleFlow, TVL1Flow};
         enum ScoreMethod {Harris, MinEigen};
+        enum FeatureMethod{STIP, ORB};
 
         StipDetector();
         StipDetector(const Mat& frame_current, const Mat& frame_previous);
         virtual ~StipDetector();
         void VideoKeypointDisplay( Mat& frame, const vector<KeyPoint>& corners);
 
-        void SetFineScale(double scale);
+        void SetFineScale(float scale);
         void SetLevelNum( int n_level);
         void SetMethodScore(StipDetector::ScoreMethod method);
         void SetMethodROI(StipDetector::RoiMethod method);
         void SetFrames(const cv::Mat& f1, const cv::Mat& f2);
 
-        void detect();
+        void detect(StipDetector::FeatureMethod method);
         void ClearPoints();
         void DefineROI();
         void GetROI(cv::Mat& fg);
         void GetScore(cv::Mat& score);
         void GetKeyPoints(vector<cv::KeyPoint>& corners);
-        void VideoKeypointDisplay( );
+        void GetDescriptorORB( cv::Mat& out);
+        void VideoKeypointDisplay(std::string window_name );
 
     protected:
 
         void Gradient (const Mat& src, Mat& gradx, Mat& grady, bool use_sobel = true);
-        void MotionTensorScore (const cv::Mat& frame_current, const cv::Mat& frame_previous, cv::Mat& score, double rho);
+        void MotionTensorScore (const cv::Mat& frame_current, const cv::Mat& frame_previous, cv::Mat& score, float rho);
         void Dilation(const cv::Mat& src, cv::Mat& dst, int kernelsize=5);
         void Open(const cv::Mat& src, cv::Mat& dst, int kernelsize=5);
         void Close(const cv::Mat& src, cv::Mat& dst, int kernelsize=5);

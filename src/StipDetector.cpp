@@ -12,7 +12,7 @@ void StipDetector::Dilation(const cv::Mat& src, cv::Mat& dst, int kernelsize)
 // kernelsize is only odd!
 {
 
-    cv::Mat element = cv::getStructuringElement( cv::MORPH_RECT,
+    cv::Mat element = cv::getStructuringElement( cv::MORPH_ELLIPSE,
                                    cv::Size( kernelsize, kernelsize ),
                                    cv::Point( (kernelsize-1)/2, (kernelsize-1)/2 ) );
     // Apply the dilation operation
@@ -24,7 +24,7 @@ void StipDetector::Open(const cv::Mat& src, cv::Mat& dst, int kernelsize)
 // kernelsize is only odd!
 {
 
-    cv::Mat element = cv::getStructuringElement( cv::MORPH_RECT,
+    cv::Mat element = cv::getStructuringElement( cv::MORPH_ELLIPSE,
                                    cv::Size( kernelsize, kernelsize ),
                                    cv::Point( (kernelsize-1)/2, (kernelsize-1)/2 ) );
     // Apply the dilation operation
@@ -38,7 +38,7 @@ void StipDetector::Close(const cv::Mat& src, cv::Mat& dst, int kernelsize)
 // kernelsize is only odd!
 {
 
-    cv::Mat element = cv::getStructuringElement( cv::MORPH_RECT,
+    cv::Mat element = cv::getStructuringElement( cv::MORPH_ELLIPSE,
                                    cv::Size( kernelsize, kernelsize ),
                                    cv::Point( (kernelsize-1)/2, (kernelsize-1)/2 ) );
     // Apply the dilation operation
@@ -69,12 +69,12 @@ void StipDetector::Gradient (const Mat& src, Mat& gradx, Mat& grady, bool use_so
 
         for(j = 1; j < ny-1; j++)
         {
-            const double* ptr      = src.ptr<double>(j);
-            const double* ptr_up   = src.ptr<double>(j+1);
-            const double* ptr_down = src.ptr<double>(j-1);
+            const float* ptr      = src.ptr<float>(j);
+            const float* ptr_up   = src.ptr<float>(j+1);
+            const float* ptr_down = src.ptr<float>(j-1);
 
-            double* ptr_gradx = (double*) gradx.ptr(j);
-            double* ptr_grady = (double*) grady.ptr(j);
+            float* ptr_gradx = (float*) gradx.ptr(j);
+            float* ptr_grady = (float*) grady.ptr(j);
 
             for(i = num_channel; i < nx-num_channel; i++)
             {
@@ -89,7 +89,7 @@ void StipDetector::Gradient (const Mat& src, Mat& gradx, Mat& grady, bool use_so
 
 
 
-void StipDetector::MotionTensorScore (const cv::Mat& frame_current, const cv::Mat& frame_previous, cv::Mat& score, double rho)
+void StipDetector::MotionTensorScore (const cv::Mat& frame_current, const cv::Mat& frame_previous, cv::Mat& score, float rho)
 {
 
     cv::Mat frame_current_gradx, frame_current_grady ;
@@ -136,16 +136,16 @@ void StipDetector::MotionTensorScore (const cv::Mat& frame_current, const cv::Ma
         /// the motion tensor. This can be regarded as a spatial-temporal 'good feature for tracking'.
         /// Here the non-iterative method of K.M. Hasan et al. is used.
         /// [1] Analytical Computation of the Eigenvalues and Eigenvectors in DT-MRI
-        double v, s, phi;
+        float v, s, phi;
         int i,j;
         score.create(I1.rows, I1.cols, CV_64F);
 
         for (j = 0; j < J11.rows; j++)
         {
-            double* ptr_I1 = (double*) I1.ptr(j);
-            double* ptr_I2 = (double*) I2.ptr(j);
-            double* ptr_I3 = (double*) I3.ptr(j);
-            double* ptr_score = (double*) score.ptr(j);
+            float* ptr_I1 = (float*) I1.ptr(j);
+            float* ptr_I2 = (float*) I2.ptr(j);
+            float* ptr_I3 = (float*) I3.ptr(j);
+            float* ptr_score = (float*) score.ptr(j);
 
             for(i = 0; i < J11.cols; i++)
             {
@@ -163,22 +163,21 @@ void StipDetector::MotionTensorScore (const cv::Mat& frame_current, const cv::Ma
         break;
     }
 
-
 }
 
 
 
-void StipDetector::VideoKeypointDisplay( )
+void StipDetector::VideoKeypointDisplay( std::string window_name)
 {
     Mat frame = (_frame_current + _frame_previous)/2.0;
-    namedWindow("results",WINDOW_NORMAL);
+    namedWindow(window_name,WINDOW_NORMAL);
     frame.convertTo(frame, CV_8U);
 
     cv::Mat frame_display;
 
     cv::drawKeypoints(frame, _corners, frame_display, Scalar::all(-1),4);
 
-    imshow("results", frame_display);
+    imshow(window_name, frame_display);
     waitKey(30);
 }
 
@@ -190,12 +189,18 @@ StipDetector::StipDetector() : _n_level(1), _scale_base(0.0)
 
 }
 
-StipDetector::StipDetector(const Mat& f1, const Mat& f2) : _scale_base(1.5),_n_level(3)
+StipDetector::StipDetector(const Mat& f1, const Mat& f2) : _scale_base(2),_n_level(3)
 {
     _frame_current = f2.clone();
     _frame_previous = f1.clone();
     _corners.clear();
-    _roi_method = StipDetector::ScoreThreshold;
+
+    /// convert images to float
+    _frame_current.convertTo(_frame_current, CV_32F);
+    _frame_previous.convertTo(_frame_previous, CV_32F);
+
+
+    _roi_method = StipDetector::TemporalThreshold;
     _score_method = StipDetector::Harris;
 
 }
@@ -204,9 +209,13 @@ void StipDetector::SetFrames(const cv::Mat& f1, const cv::Mat& f2)
 {
     _frame_current = f2.clone();
     _frame_previous = f1.clone();
+
+    _frame_current.convertTo(_frame_current,CV_32F);
+    _frame_previous.convertTo(_frame_previous,CV_32F);
+
 }
 
-void StipDetector::SetFineScale(double scale)
+void StipDetector::SetFineScale(float scale)
 {
     _scale_base = scale;
 }
@@ -248,13 +257,15 @@ void StipDetector::DefineROI()
     std::vector<cv::Mat> flow_i;
     switch(_roi_method)
     {
-    case ScoreThreshold:
-        _roi = abs(_score);
-        minMaxLoc(_roi,&min_val,&max_val);
-        _roi -= min_val;
-        convertScaleAbs(_roi,_roi,255/(max_val-min_val));
+    case TemporalThreshold:
+        cv::absdiff(_frame_current, _frame_previous, _roi);
+
         cv::threshold(_roi, _roi,10,255,cv::THRESH_BINARY);
-        _roi.convertTo(_roi,CV_32F);
+
+        Close(_roi,_roi,70);
+
+        _roi.convertTo(_roi,CV_32F, 1.0/255);
+
         break;
 
     case GM2:
@@ -307,50 +318,73 @@ void StipDetector::GetKeyPoints(vector<cv::KeyPoint>& corners)
 
 
 
-void StipDetector::detect()
+void StipDetector::detect(StipDetector::FeatureMethod method = STIP)
 {
-    double min_val, max_val;
-    const double ss_multiplier = 2;
+    float min_val, max_val;
+    const float ss_multiplier = 2;
     const int boundary = 10; // keypoints at the boundary is not considered.
+    cv::Ptr<cv::ORB> dec = cv::ORB::create();
+    cv::Mat frame, roi;
 
     int i,j;
     StipDetector::DefineROI();
 
-    /// scale-space representation, rho_s = pow(ss_multiplier,s)*rho, s = 0,...,_n_level-1
-    for (int s = 0; s < _n_level; s++)
+    switch (method)
     {
-        StipDetector::MotionTensorScore (_frame_current, _frame_previous, _score, _scale_base*std::pow(ss_multiplier,s));
-
-        // find local maximum
-        StipDetector::Dilation(_score, _score_dilate,21);
-        _score_peak = _score_dilate-_score;
-        _score_peak.convertTo(_score_peak, CV_32F);
-        //cv::threshold(score_peak, score_peak, 0,255.0,cv::THRESH_BINARY );
-
-
-
-        // extract key points
-        for (j = boundary; j < _score.rows-boundary; j++)
-        {
-
-            float* ptr_roi = (float*) _roi.ptr(j);
-            float* ptr_score_peak = (float*) _score_peak.ptr(j);
-            for (i = boundary; i < _score.cols-boundary; i++)
+        case STIP:
+            /// scale-space representation, rho_s = pow(ss_multiplier,s)*rho, s = 0,...,_n_level-1
+            for (int s = 0; s < _n_level; s++)
             {
-                if(ptr_roi[i] != 0.0f && ptr_score_peak[i] == 0.0f)
-                    _corners.push_back(KeyPoint(Point2f(i,j),std::pow(ss_multiplier,s)*_scale_base) );
+                StipDetector::MotionTensorScore (_frame_current, _frame_previous, _score, _scale_base*std::pow(ss_multiplier,s));
+
+                // find local maximum
+                StipDetector::Dilation(_score, _score_dilate,11);
+                _score_peak = _score_dilate-_score;
+                _score_peak.convertTo(_score_peak, CV_32F);
+                //cv::threshold(score_peak, score_peak, 0,255.0,cv::THRESH_BINARY );
+
+
+                // extract key points
+                for (j = boundary; j < _score.rows-boundary; j++)
+                {
+
+                    float* ptr_roi = (float*) _roi.ptr(j);
+                    float* ptr_score_peak = (float*) _score_peak.ptr(j);
+                    for (i = boundary; i < _score.cols-boundary; i++)
+                    {
+                        if(ptr_roi[i] != 0.0f && ptr_score_peak[i] == 0.0f)
+                            _corners.push_back(KeyPoint(Point2f(i,j),std::pow(ss_multiplier,s)*_scale_base) );
+
+                    }
+                }
+
 
             }
-        }
+            break;
+        case ORB:
+            _frame_current.convertTo(frame,CV_8UC1);
+            _roi.convertTo(roi,CV_8UC1);
 
+            dec->detect(frame, _corners,roi);
+            break;
+        default:
+            break;
 
     }
 
 }
 
-
+void StipDetector::GetDescriptorORB( cv::Mat& out)
+{
+    cv::Mat frame;
+    cv::Ptr<cv::ORB> feature = cv::ORB::create();
+    _frame_current.convertTo(frame,CV_8UC1);
+    feature->compute(frame, _corners, out);
+}
 
 StipDetector::~StipDetector( )
 {
     //dtor
+    _corners.clear();
+
 }
