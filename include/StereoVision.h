@@ -33,12 +33,18 @@ class StereoVision
         void BlockMatching2(cv::Mat& frame1, cv::Mat& frame2, cv::Mat& frame1_roi, cv::Mat& out);
         void Tracking3DInitialize(cv::Mat& f1_pre, cv::Mat& f2_pre, cv::Mat& f1_cur, cv::Mat& f2_cur);
         void HomographyToGround(cv::Mat& img_cb, bool);
+        bool Tracking2DCamShift(const cv::Mat& f1, const cv::Mat& f0, cv::Rect& bd, bool with_initialize);
 
         virtual ~StereoVision();
     protected:
         void Close(const cv::Mat& src, cv::Mat& dst, int kernelsize);
         inline float SAD(cv::Mat& set1, cv::Mat& set2);
-        inline void ImagePreprocessing(cv::Mat& f);
+        inline void MultiBoundingBoxFromROI(cv::Mat& roi, std::vector<cv::Rect>& boundRect);
+        inline void SingleBoundingBoxFromROI(cv::Mat& roi, cv::Rect& bd);
+        inline void ShowBoundingBox(const cv::Mat&, cv::Rect&);
+        inline void ShowBoundingBox(const cv::Mat& drawing, std::vector<cv::Rect>& bd);
+        inline void ShowTracking(const cv::Mat& f_current, cv::Rect& bd, std::vector<cv::Point>& trajectory);
+        inline void ImagePreprocessing(const cv::Mat& f, cv::Mat& out);
     private:
         /// frame streams and videos
         std::vector<cv::VideoCapture> _stream;

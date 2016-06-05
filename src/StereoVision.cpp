@@ -5,6 +5,9 @@ using namespace std;
 using namespace cv;
 using namespace cv::ximgproc;
 
+using namespace std;
+using namespace cv;
+
 StereoVision::StereoVision()
 {
     //ctor
@@ -192,8 +195,147 @@ void StereoVision::IsSynchronizedTwoStreams()
 }
 
 
+inline void StereoVision::MultiBoundingBoxFromROI(cv::Mat& roi, std::vector<cv::Rect>& boundRect)
+/// multiple object bounding box
+{
+
+    std::vector<std::vector<cv::Point>> contours;
+    std::vector<cv::Vec4i> hierarchy;
+    cv::RNG rng(12345);
+    cv::Mat roi_w;
+    roi.convertTo(roi_w,CV_8UC1);
+
+    /// Find contours
+    findContours( roi_w, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
+
+    /// Approximate contours to polygons + get bounding rects and circles
+    vector<vector<Point> > contours_poly( contours.size() );
+
+    for( int i = 0; i < contours.size(); i++ )
+    {
+        approxPolyDP( Mat(contours[i]), contours_poly[i], 3, true );
+        boundRect[i] = boundingRect( Mat(contours_poly[i]) );
+    }
 
 
+
+}
+
+
+
+
+
+
+inline void StereoVision::SingleBoundingBoxFromROI(cv::Mat& roi, cv::Rect& bd)
+/// single object bounding box
+{
+
+    std::vector<cv::Point> pts;
+    cv::Mat roi_w;
+    roi.convertTo(roi_w,CV_8UC1);
+
+    /// Find points
+    for(int i = 0; i < roi_w.rows; i++)
+    {
+        uint8_t* ptr = roi_w.ptr<uint8_t>(i);
+        for(int j = 0; j < roi_w.cols; j++)
+        {
+            if(ptr[j] !=0)
+                pts.push_back(cv::Point(j,i));
+        }
+    }
+
+    /// Approximate contours to polygons + get bounding rects and circles
+    bd = boundingRect( pts );
+
+}
+
+
+
+inline void StereoVision::ShowBoundingBox(const cv::Mat& drawing, cv::Rect& bd)
+{
+        cv::RNG rng(12345);
+        cv::Scalar color = Scalar( rng.uniform(0, 255), rng.uniform(0,255), rng.uniform(0,255) );
+        cv::rectangle( drawing, bd.tl(), bd.br(), color, 2, 8, 0 );
+        cv::Point2f ptt = (bd.br()+bd.tl())/2;
+
+        /// Show in a window
+        namedWindow( "Contours", CV_WINDOW_NORMAL );
+        imshow( "Contours", drawing );
+}
+
+
+
+inline void StereoVision::ShowTracking(const cv::Mat& f_current, cv::Rect& bd, std::vector<cv::Point>& trajectory)
+{
+
+
+        cv::namedWindow("tracking", CV_WINDOW_NORMAL);
+        cv::RNG rng(12345);
+        cv::Scalar color = Scalar( rng.uniform(0, 255), rng.uniform(0,255), rng.uniform(0,255) );
+        cv::rectangle( f_current, bd.tl(), bd.br(), color, 2, 8, 0 );
+
+        for(int i = 0; i < trajectory.size()-1; i++)
+            cv::line(f_current, trajectory[i], trajectory[i+1], color);
+
+        /// Show in a window
+        cv::imshow("tracking",f_current);
+
+}
+
+
+
+inline void StereoVision::ShowBoundingBox(const cv::Mat& drawing, std::vector<cv::Rect>& bd)
+{
+        cv::RNG rng(12345);
+        Scalar color = Scalar( rng.uniform(0, 255), rng.uniform(0,255), rng.uniform(0,255) );
+
+        for( int i = 0; i< bd.size(); i++ )
+        {
+           Scalar color = Scalar( rng.uniform(0, 255), rng.uniform(0,255), rng.uniform(0,255) );
+           rectangle( drawing, bd[i].tl(), bd[i].br(), color, 2, 8, 0 );
+        }
+
+        /// Show in a window
+        namedWindow( "Contours", CV_WINDOW_AUTOSIZE );
+        imshow( "Contours", drawing );
+}
+
+
+bool StereoVision::Tracking2DCamShift( const cv::Mat& f0, const cv::Mat& f1, cv::Rect& bd, bool with_initialize)
+/// f1, f0 the current frame and the previous frame
+/// cen, the new central point of the new bounding box
+{
+
+    cv::Mat roi;
+    bool found_box = false;
+
+
+    if(with_initialize)
+    /// if yes, the algorithm just perform initialization and gives the bounding box on the current frame
+    {
+        StipDetector dec (f0, f1);
+        dec.DefineROI();
+        dec.GetROI(roi);
+        cv::imshow("roi",roi);
+        double minval, maxval;
+        cv::minMaxLoc(roi,&minval, &maxval);
+        if(minval == maxval)
+        {
+            std::cout << minval << " " <<maxval <<std::endl;
+            std::cout << "no motion is detected" <<std::endl;
+
+        }
+        else
+        {
+
+            SingleBoundingBoxFromROI(roi, bd);
+            found_box = true;
+        }
+
+    }
+    return found_box;
+}
 
 
 void StereoVision::ImageRectification(cv::Mat& frame1, cv::Mat& frame2, cv::Mat& out1,
@@ -442,9 +584,9 @@ void StereoVision::StereoShow(bool is_rectified)
     int num_frames =  this->_stream[0].get(CV_CAP_PROP_FRAME_COUNT);
     cv::namedWindow("stream1", cv::WINDOW_NORMAL);
     cv::namedWindow("stream2", cv::WINDOW_NORMAL);
-    cv::Mat frame1, frame1_rec, frame1_pre;
-    cv::Mat frame2, frame2_rec, frame2_pre, frame2_birdview;
-
+    cv::Mat frame1, frame1_rec, frame1_pre, frame1_s;
+    cv::Mat frame2, frame2_rec, frame2_pre, frame2_birdview, frame2_s;
+    std::vector<cv::Point> trajectory;
     /// params for rectification
     cv::Mat R1, R2, P1, P2, Q;
 
@@ -494,27 +636,39 @@ void StereoVision::StereoShow(bool is_rectified)
     }
     else
     {
+        trajectory.clear();
         for(int i = 0; i < num_frames; i++)
         {
 
-            this->_stream[0].read( frame1);
+            this->_stream[0].read(frame1);
             this->_stream[1].read(frame2);
 
 
-            cv::warpPerspective(frame2, frame2_birdview, _H, cv::Size(frame1.cols, frame1.rows));
 
 
             cv::imshow("stream1",frame1);
             cv::imshow("stream2",frame2);
+            cv::namedWindow("birdview", CV_WINDOW_NORMAL);
+            cv::Point2f pt(0,0);
+            cv::Rect bd;
+            std::cout << i <<std::endl;
+            ImagePreprocessing(frame2, frame2_s);
 
+            if(i>10)
+            {
 
+                if (Tracking2DCamShift(frame2_pre, frame2_s, bd, true))
+                {
+                    trajectory.push_back( (bd.tl()+bd.br())/2 );
 
-            cv::imshow("birdview", frame2_birdview);
+                    ShowTracking(frame2,bd, trajectory);
+                    cv::warpPerspective(frame2, frame2_birdview, _H, cv::Size(frame1.cols, frame1.rows));
+                    cv::imshow("birdview", frame2_birdview);
 
+                }
+            }
 
-            frame1_pre = frame1;
-            frame2_pre = frame2;
-
+            frame2_pre = frame2_s.clone();
 
             cv::waitKey(10);
         }
@@ -526,13 +680,18 @@ void StereoVision::StereoShow(bool is_rectified)
 
 }
 
-inline void StereoVision::ImagePreprocessing(cv::Mat& f)
+
+
+
+
+
+
+inline void StereoVision::ImagePreprocessing(const cv::Mat& f, cv::Mat& out)
 ///this function will convert the image to gray value and Gaussian smooth it
 {
     float sigma = 1.0;
-
-    cv::cvtColor(f, f, cv::COLOR_BGR2GRAY);
-    cv::GaussianBlur(f, f, cv::Size(0,0), sigma,sigma, BORDER_REFLECT);
+    cv::cvtColor(f, out, cv::COLOR_BGR2GRAY);
+    cv::GaussianBlur(out, out, cv::Size(0,0), sigma,sigma, BORDER_REFLECT);
 
 }
 

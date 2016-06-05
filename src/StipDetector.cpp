@@ -195,10 +195,20 @@ StipDetector::StipDetector(const Mat& f1, const Mat& f2) : _scale_base(2),_n_lev
     _frame_previous = f1.clone();
     _corners.clear();
 
+    if(_frame_current.channels()!=1)
+    {
+        cv::cvtColor(_frame_current, _frame_current, cv::COLOR_BGR2GRAY);
+        cv::cvtColor(_frame_previous, _frame_previous, cv::COLOR_BGR2GRAY);
+
+    }
+//
     /// convert images to float
     _frame_current.convertTo(_frame_current, CV_32F);
     _frame_previous.convertTo(_frame_previous, CV_32F);
 
+//    double sigma = 1.5;
+//    cv::GaussianBlur(_frame_current, _frame_current, cv::Size(0,0), sigma,sigma, BORDER_REFLECT);
+//    cv::GaussianBlur(_frame_previous, _frame_previous, cv::Size(0,0), sigma,sigma, BORDER_REFLECT);
 
     _roi_method = StipDetector::TemporalThreshold;
     _score_method = StipDetector::Harris;
@@ -260,9 +270,9 @@ void StipDetector::DefineROI()
     case TemporalThreshold:
         cv::absdiff(_frame_current, _frame_previous, _roi);
 
-        cv::threshold(_roi, _roi,10,255,cv::THRESH_BINARY);
+        cv::threshold(_roi, _roi,15,255,cv::THRESH_BINARY);
 
-        Close(_roi,_roi,70);
+//        Close(_roi,_roi,3);
 
         _roi.convertTo(_roi,CV_32F, 1.0/255);
 

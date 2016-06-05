@@ -22,7 +22,7 @@ class StipDetector
         enum FeatureMethod{STIP, ORB};
 
         StipDetector();
-        StipDetector(const Mat& frame_current, const Mat& frame_previous);
+        StipDetector(const Mat& frame_previous, const Mat& frame_current);
         virtual ~StipDetector();
         void VideoKeypointDisplay( Mat& frame, const vector<KeyPoint>& corners);
 
