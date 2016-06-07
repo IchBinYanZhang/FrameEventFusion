@@ -201,6 +201,7 @@ StipDetector::StipDetector(const Mat& f1, const Mat& f2) : _scale_base(2),_n_lev
         cv::cvtColor(_frame_previous, _frame_previous, cv::COLOR_BGR2GRAY);
 
     }
+
 //
     /// convert images to float
     _frame_current.convertTo(_frame_current, CV_32F);

@@ -67,7 +67,18 @@ void StereoVision::Close(const cv::Mat& src, cv::Mat& dst, int kernelsize)
 }
 
 
+void StereoVision::Open(const cv::Mat& src, cv::Mat& dst, int kernelsize)
+// kernelsize is only odd!
+{
 
+    cv::Mat element = cv::getStructuringElement( cv::MORPH_RECT,
+                                   cv::Size( kernelsize, kernelsize ),
+                                   cv::Point( (kernelsize-1)/2, (kernelsize-1)/2 ) );
+    // Apply the dilation operation
+
+    cv::erode(src,dst,element);
+    cv::dilate( dst, dst, element );
+}
 
 
 
@@ -274,7 +285,6 @@ inline void StereoVision::ShowTracking(const cv::Mat& f_current, cv::Rect& bd, s
         cv::RNG rng(12345);
         cv::Scalar color = Scalar( rng.uniform(0, 255), rng.uniform(0,255), rng.uniform(0,255) );
         cv::rectangle( f_current, bd.tl(), bd.br(), color, 2, 8, 0 );
-
         for(int i = 0; i < trajectory.size()-1; i++)
             cv::line(f_current, trajectory[i], trajectory[i+1], color);
 
@@ -302,39 +312,227 @@ inline void StereoVision::ShowBoundingBox(const cv::Mat& drawing, std::vector<cv
 }
 
 
-bool StereoVision::Tracking2DCamShift( const cv::Mat& f0, const cv::Mat& f1, cv::Rect& bd, bool with_initialize)
+
+
+
+void StereoVision::CLBP( Mat& src, Mat& dst, int radius, int neighbors) {
+    neighbors = max(min(neighbors,31),1); // set bounds...
+    // Note: alternatively you can switch to the new OpenCV Mat_
+    // type system to define an unsigned int matrix... I am probably
+    // mistaken here, but I didn't see an unsigned int representation
+    // in OpenCV's classic typesystem...
+
+    /// convert to CV_32F first
+
+    src.convertTo(src,CV_32F);
+    dst = Mat::zeros(src.rows, src.cols, CV_8UC1);
+    for(int n=0; n<neighbors; n++) {
+        // sample points
+        float x = static_cast<float>(radius) * cos(2.0*M_PI*n/static_cast<float>(neighbors));
+        float y = static_cast<float>(radius) * -sin(2.0*M_PI*n/static_cast<float>(neighbors));
+        // relative indices
+        int fx = static_cast<int>(floor(x));
+        int fy = static_cast<int>(floor(y));
+        int cx = static_cast<int>(ceil(x));
+        int cy = static_cast<int>(ceil(y));
+        // fractional part
+        float ty = y - fy;
+        float tx = x - fx;
+        // set interpolation weights
+        float w1 = (1 - tx) * (1 - ty);
+        float w2 =      tx  * (1 - ty);
+        float w3 = (1 - tx) *      ty;
+        float w4 =      tx  *      ty;
+        // iterate through your data
+        for(int i=radius; i < src.rows-radius;i++) {
+            for(int j=radius;j < src.cols-radius;j++) {
+                float t = w1*src.at<float>(i+fy,j+fx) + w2*src.at<float>(i+fy,j+cx) + w3*src.at<float>(i+cy,j+fx) + w4*src.at<float>(i+cy,j+cx);
+                // we are dealing with floating point precision, so add some little tolerance
+                dst.at<uint8_t>(i,j) += ((t > src.at<float>(i,j)) && (abs(t-src.at<float>(i,j)) > std::numeric_limits<float>::epsilon())) << n;
+            }
+        }
+    }
+}
+
+
+inline void StereoVision::HistDisplay(const cv::Mat& hist, const int nbins, const float* histRange )
+{
+    int hist_h = 512;
+    int hist_w = 400;
+    Mat histImage( hist_h, hist_w, CV_8UC3, Scalar( 0,0,0) );
+    Mat hist_out;
+    int bin_w = cvRound( (double) hist_w/nbins );
+  /// Normalize the result to [ 0, histImage.rows ]
+  normalize(hist, hist_out, 0, histImage.rows, NORM_MINMAX, -1, Mat() );
+
+
+  /// Draw for each channel
+  for( int i = 1; i < nbins; i++ )
+  {
+      line( histImage, Point( bin_w*(i-1), hist_h - cvRound(hist_out.at<float>(i-1)) ) ,
+                       Point( bin_w*(i), hist_h - cvRound(hist_out.at<float>(i)) ),
+                       Scalar( 255, 255, 0), 2, 8, 0  );
+  }
+  imshow("histogram", histImage);
+}
+
+
+bool StereoVision::Tracking2D( const cv::Mat& f0, const cv::Mat& f1, cv::Rect& bd, cv::Rect& bd_new,cv::Mat& hist, Tracking2DMethod method)
 /// f1, f0 the current frame and the previous frame
-/// cen, the new central point of the new bounding box
+/// bd, in parameters
+/// hist, in
+/// bd_new, out the new bounding box
 {
 
     cv::Mat roi;
     bool found_box = false;
 
 
-    if(with_initialize)
-    /// if yes, the algorithm just perform initialization and gives the bounding box on the current frame
+    Tracking2DMethod _method = TRACKINGBYDETECTION;
+    Mat image, image_h, image_s, image_v,image_lbp, mask = Mat::zeros(f1.size(), CV_8UC1), backproj;
+
+    /// histogram parameters lbp
+    int imgCount = 3;
+    int dims = 3;
+    const int sizes[] = {32,32,32};
+    const int channels[] = {0,1,2};
+    float sRange[] = {0,256};
+    float vRange [] = {0,256};
+    float lbpRange[] = {0,256};
+    const float *ranges[] = { sRange,vRange, lbpRange};
+    float radius = 2;
+    int n_points = 8;
+
+
+    /// histogram parameters of HSV
+
+//    int imgCount = 1;
+//    int dims = 2;
+//    const int sizes[] = {30,30};
+//    const int channels[] = {0,1};
+//    float hRange[] = {0,180};
+//    float sRange[] = {0,256};
+//    const float *ranges[] = {hRange, sRange};
+//    float radius = 1;
+//    int n_points = 8;
+
+    switch(method)
     {
-        StipDetector dec (f0, f1);
-        dec.DefineROI();
-        dec.GetROI(roi);
-        cv::imshow("roi",roi);
-        double minval, maxval;
-        cv::minMaxLoc(roi,&minval, &maxval);
-        if(minval == maxval)
-        {
-            std::cout << minval << " " <<maxval <<std::endl;
-            std::cout << "no motion is detected" <<std::endl;
 
+
+        case TRACKINGBYDETECTION:
+        /// it directly gives us the bounding box. This can be used for tracking initialization.
+        {
+
+            StipDetector dec (f0, f1);
+            dec.DefineROI();
+            dec.GetROI(roi);
+            cv::imshow("roi",roi);
+            roi.convertTo(roi,CV_8UC1);
+            double minval, maxval;
+            cv::minMaxLoc(roi,&minval, &maxval);
+
+            if(minval == maxval)
+            {
+                std::cout << minval << " " <<maxval <<std::endl;
+                std::cout << "no motion is detected" <<std::endl;
+
+            }
+            else
+            {
+                /// compute the bounding box
+                SingleBoundingBoxFromROI(roi, bd);
+                bd_new = bd;
+                found_box = true;
+
+                /// compute the histogram
+
+                //CLBP
+                cvtColor(f1, image, COLOR_BGR2GRAY);
+                CLBP(image, image_lbp, radius, n_points);
+
+                //HSV
+                cvtColor(f1,image,COLOR_BGR2HSV);
+                int ch1[] = {1, 0};
+                int ch2[] = {2, 0};
+
+                image_s.create(image.size(), image.depth());
+                mixChannels(&image, 1, &image_s, 1,ch1, 1);
+                image_v.create(image.size(), image.depth());
+                mixChannels(&image, 1, &image_v, 1, ch2, 1);
+
+
+
+                cv::Mat imgSet [] = {image_s,image_v, image_lbp};
+
+                vector<Point> bd_vertices {Point(bd.x, bd.y), Point(bd.x+bd.width, bd.y),Point(bd.x+bd.width, bd.y+bd.height),Point(bd.x, bd.y+bd.height)};
+                vector<Point> bd_poly;
+                approxPolyDP(bd_vertices, bd_poly, 1.0, true);
+                fillConvexPoly(mask, &bd_poly[0], (int)bd_poly.size(), 255, 8, 0);
+
+
+//                Mat image_lbp_roi (image_lbp, bd);
+//                Mat mask_roi(mask, bd);
+                calcHist(imgSet, imgCount, channels, mask, hist, dims, sizes, ranges);
+//                normalize(hist, hist, 0, 255, NORM_MINMAX);
+            }
+
+            break;
         }
-        else
+        case CAMSHIFT:
+        /// update the bounding box using the camshift algorithm, in which the size,location and rotation will update at the same time.
         {
 
-            SingleBoundingBoxFromROI(roi, bd);
+
+            ///extract histogram
+            cvtColor(f1, image, COLOR_BGR2GRAY);
+            CLBP(image,image_lbp, radius, n_points);
+
+            cvtColor(f1, image, COLOR_BGR2HSV);
+            int ch1[] = {1, 0};
+            int ch2[] = {2, 0};
+            image_s.create(image.size(), image.depth());
+            mixChannels(&image, 1, &image_s, 1,ch1, 1);
+            image_v.create(image.size(), image.depth());
+            mixChannels(&image, 1, &image_v, 1, ch2, 1);
+
+
+            cv::Mat imgSet[] = {image_s,image_v, image_lbp};
+
+//
+//            vector<Point> bd_vertices {Point(bd.x, bd.y), Point(bd.x+bd.width, bd.y),Point(bd.x+bd.width, bd.y+bd.height),Point(bd.x, bd.y+bd.height)};
+//            vector<Point> bd_poly;
+//            approxPolyDP(bd_vertices, bd_poly, 1.0, true);
+//            fillConvexPoly(mask, &bd_poly[0], (int)bd_poly.size(), 255, 8, 0);
+
+
+            cv::calcBackProject(imgSet,imgCount,channels,hist,backproj,ranges);
+//            cv::GaussianBlur(backproj, backproj, cv::Size(0,0), 6.5,6.5, BORDER_REFLECT);
+
+            imshow("backproj", backproj);
+            RotatedRect trackBox = CamShift(backproj, bd,
+                                TermCriteria( TermCriteria::EPS | TermCriteria::COUNT, 10, 1 ));
+
+            bd_new = trackBox.boundingRect();
+            /// update histogram
+//            vector<Point> bd_vertices1 {Point(bd.x, bd.y), Point(bd.x+bd.width, bd.y),Point(bd.x+bd.width, bd.y+bd.height),Point(bd.x, bd.y+bd.height)};
+//            vector<Point> bd_poly1;
+//            approxPolyDP(bd_vertices1, bd_poly1, 1.0, true);
+//            fillConvexPoly(mask, &bd_poly1[0], (int)bd_poly1.size(), 255, 8, 0);
+//
+//            calcHist(&image, imgCount, channels, mask, hist, dims, sizes, ranges);
+
             found_box = true;
+            break;
         }
 
+        default:
+            break;
     }
+
+//    HistDisplay(hist, sizes[0], ranges[0] );
     return found_box;
+
 }
 
 
@@ -594,10 +792,14 @@ void StereoVision::StereoShow(bool is_rectified)
     cv::Mat cam1map1, cam1map2;
     cv::Mat cam2map1, cam2map2;
 
+    /// for tracking
+    cv::Rect bd, bd_new;
+    cv::Mat hist;
+
+
 
     if( is_rectified)
     {
-
 
         cv::stereoRectify(_intrisic_mat[0],_dist_coeff[0],_intrisic_mat[1],_dist_coeff[1],
                           cv::Size(_nx,_ny), _rotation_mat[1],_trans_vec[1],
@@ -637,6 +839,7 @@ void StereoVision::StereoShow(bool is_rectified)
     else
     {
         trajectory.clear();
+
         for(int i = 0; i < num_frames; i++)
         {
 
@@ -644,29 +847,32 @@ void StereoVision::StereoShow(bool is_rectified)
             this->_stream[1].read(frame2);
 
 
-
+            cout << "------------frame "<<i<<" -----------------"<<endl;
 
             cv::imshow("stream1",frame1);
             cv::imshow("stream2",frame2);
             cv::namedWindow("birdview", CV_WINDOW_NORMAL);
-            cv::Point2f pt(0,0);
-            cv::Rect bd;
-            std::cout << i <<std::endl;
-            ImagePreprocessing(frame2, frame2_s);
+            ImagePreprocessing(frame2, frame2_s); // only gaussian blur
 
-            if(i>10)
+            if(i>50  )
             {
-
-                if (Tracking2DCamShift(frame2_pre, frame2_s, bd, true))
+                if(bd.height == 0.0 || bd.width == 0.0){
+                    cout << " -- detection" <<endl;
+                    Tracking2D(frame2_pre, frame2_s, bd, bd_new, hist, TRACKINGBYDETECTION);
+                }
+                else
                 {
-                    trajectory.push_back( (bd.tl()+bd.br())/2 );
+                    cout << " -- tracking" <<endl;
+                    Tracking2D(frame2_pre, frame2_s, bd, bd_new, hist,CAMSHIFT);
+                    trajectory.push_back( (bd_new.tl()+bd_new.br())/2 );
 
-                    ShowTracking(frame2,bd, trajectory);
+                    ShowTracking(frame2,bd_new, trajectory);
                     cv::warpPerspective(frame2, frame2_birdview, _H, cv::Size(frame1.cols, frame1.rows));
                     cv::imshow("birdview", frame2_birdview);
-
+//                    cv::waitKey(0);
                 }
             }
+
 
             frame2_pre = frame2_s.clone();
 
@@ -689,9 +895,9 @@ void StereoVision::StereoShow(bool is_rectified)
 inline void StereoVision::ImagePreprocessing(const cv::Mat& f, cv::Mat& out)
 ///this function will convert the image to gray value and Gaussian smooth it
 {
-    float sigma = 1.0;
-    cv::cvtColor(f, out, cv::COLOR_BGR2GRAY);
-    cv::GaussianBlur(out, out, cv::Size(0,0), sigma,sigma, BORDER_REFLECT);
+    float sigma = 0.5;
+//    cv::cvtColor(f, out, cv::COLOR_BGR2GRAY);
+    cv::GaussianBlur(f, out, cv::Size(0,0), sigma,sigma, BORDER_REFLECT);
 
 }
 

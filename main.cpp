@@ -69,6 +69,7 @@ int main(int argc, char** argv)
 
     sv.SetCamCalibration(intrisicMat, distCoeff, rotationMat, transVec);
     cv::Mat img_cb = cv::imread(filename_cb, CV_LOAD_IMAGE_COLOR);
+
     sv.HomographyToGround(img_cb, false);
 
     sv.StereoShow(false);
