@@ -1,7 +1,7 @@
 # depslib dependency file v1.0
 19836752 <<<<<<< HEAD
 
-1465229572 source:/home/yzhang/workspace/FrameEventFusion/main.cpp
+1465661680 source:/home/yzhang/workspace/FrameEventFusion/main.cpp
 	<iostream>
 	<cstdlib>
 	<fstream>
@@ -73,11 +73,11 @@
 	"FrameStream.h"
 	"EventStream.h"
 
-1465229451 source:/home/yzhang/workspace/FrameEventFusion/src/StereoVision.cpp
+1465748556 source:/home/yzhang/workspace/FrameEventFusion/src/StereoVision.cpp
 	<opencv2/ximgproc.hpp>
 	"StereoVision.h"
 
-1465239148 /home/yzhang/workspace/FrameEventFusion/include/StereoVision.h
+1465732466 /home/yzhang/workspace/FrameEventFusion/include/StereoVision.h
 	<iostream>
 	<cstdlib>
 	<cmath>
@@ -86,6 +86,7 @@
 	<opencv/highgui.h>
 	"FrameStream.h"
 	"StipDetector.h"
+	"LocalBinaryPattern.h"
 
 1465136293 /home/yzhang/workspace/FrameEventFusion/include/StipDetector.h
 	<iostream>
@@ -387,7 +388,7 @@
 1459625427 /usr/local/include/opencv/opencv2/optflow/motempl.hpp
 	"opencv2/core.hpp"
 
-1465213436 source:/home/yzhang/workspace/FrameEventFusion/src/StipDetector.cpp
+1465665020 source:/home/yzhang/workspace/FrameEventFusion/src/StipDetector.cpp
 	"StipDetector.h"
 
 1459625427 /usr/local/include/opencv/opencv2/ximgproc.hpp
@@ -437,4 +438,14 @@
 
 1459625426 /usr/local/include/opencv/opencv2/ximgproc/lsc.hpp
 	<opencv2/core.hpp>
+
+1465748931 /home/yzhang/workspace/FrameEventFusion/include/LocalBinaryPattern.h
+	<cstdio>
+	<vector>
+	<math.h>
+	<iostream>
+	<opencv/cv.hpp>
+
+1465748921 source:/home/yzhang/workspace/FrameEventFusion/src/LocalBinaryPattern.cpp
+	"LocalBinaryPattern.h"
 

@@ -9,11 +9,14 @@
 #include <opencv/highgui.h>
 #include "FrameStream.h"
 #include "StipDetector.h"
+#include "LocalBinaryPattern.h"
 
 class StereoVision
 {
     public:
         enum Tracking2DMethod {TRACKINGBYDETECTION, CAMSHIFT};
+        enum Tracking3DMethod {TRACKINGBYDETECTION3, EPICAMSHIFT};
+        enum FeatureMethod {HSVLBP, HOG};
 
         StereoVision();
         StereoVision(FrameStream& s1, FrameStream& s2);
@@ -27,7 +30,10 @@ class StereoVision
         void ImageROIAll( cv::Mat& frame, cv::Mat& roi);
 
         void DenseDepthEstimate(cv::Mat& frame1, cv::Mat& frame2);
-        void Tracking3D();
+        bool Tracking3D(const cv::Mat& f0_pre, const cv::Mat& f0_cur, cv::Rect& bd0, cv::Mat& hist0,
+                              const cv::Mat& f1_pre, const cv::Mat& f1_cur, cv::Rect& bd1, cv::Mat& hist1,
+                              Tracking3DMethod method, FeatureMethod method_feature);
+
         void DepthShow();
         void StereoShow(bool is_rectified=false);
         void IsSynchronizedTwoStreams();
@@ -35,9 +41,10 @@ class StereoVision
         void BlockMatching2(cv::Mat& frame1, cv::Mat& frame2, cv::Mat& frame1_roi, cv::Mat& out);
         void Tracking3DInitialize(cv::Mat& f1_pre, cv::Mat& f2_pre, cv::Mat& f1_cur, cv::Mat& f2_cur);
         void HomographyToGround(cv::Mat& img_cb, bool);
-        bool Tracking2D(const cv::Mat& f1, const cv::Mat& f0, cv::Rect& bd,cv::Rect& bd_new, cv::Mat& hist, Tracking2DMethod method);
-
+        bool Tracking2D(const cv::Mat& f1, const cv::Mat& f0, cv::Rect& bd, cv::Mat& hist, Tracking2DMethod method);
         virtual ~StereoVision();
+
+
     protected:
         void Close(const cv::Mat& src, cv::Mat& dst, int kernelsize);
         void Open(const cv::Mat& src, cv::Mat& dst, int kernelsize);
@@ -47,10 +54,17 @@ class StereoVision
         inline void SingleBoundingBoxFromROI(cv::Mat& roi, cv::Rect& bd);
         inline void ShowBoundingBox(const cv::Mat&, cv::Rect&);
         inline void ShowBoundingBox(const cv::Mat& drawing, std::vector<cv::Rect>& bd);
-        inline void ShowTracking(const cv::Mat& f_current, cv::Rect& bd, std::vector<cv::Point>& trajectory);
+        inline void ShowTracking(const cv::Mat& f_current, cv::Rect& bd, std::vector<cv::Point2f>& trajectory, cv::Mat& out);
         inline void ImagePreprocessing(const cv::Mat& f, cv::Mat& out);
         void CLBP( Mat& src, Mat& dst, int radius, int neighbors);
         inline void HistDisplay(const cv::Mat& hist, const int nbins, const float* histRange );
+        void PointSetPerspectiveTransform(const std::vector<Point2f>& in, std::vector<Point2f>& out, cv::Mat& H );
+        inline void MaskFromRect(const cv::Mat& img, cv::Rect& bd, cv::Mat& out);
+        inline void FundamentalMatrixFromCalibration(const cv::Mat& K, const cv::Mat& R, const cv::Mat& T,
+                                                           const cv::Mat& K_prime, const cv::Mat& R_prime, const cv::Mat& T_prime,
+                                                           cv::Mat& F);
+
+        inline void UpdateIntrinsicByImageResize(cv::Mat& src, cv::Mat& dst, double fx, double fy);
 
     private:
         /// frame streams and videos
