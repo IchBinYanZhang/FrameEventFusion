@@ -76,29 +76,30 @@ bool LocalBinaryPattern::checkUniform(int code)
 
 int LocalBinaryPattern::GetNumBins()
 {
-    return _n_pts*_n_pts - _n_pts + 2;
+    if(_uniform)
+        return _n_pts*_n_pts - _n_pts + 2;
+    else
+        return  (int)pow(2,_n_pts);
 }
 
-int LocalBinaryPattern::GetRanges()
+double LocalBinaryPattern::GetRanges()
 {
     return pow(2,_n_pts);
 }
 
 void LocalBinaryPattern::UniformLBP( Mat& src, Mat& dst) {
-    _n_pts = max(min(_n_pts,31),1); // set bounds...
-    // Note: alternatively you can switch to the new OpenCV Mat_
-    // type system to define an unsigned int matrix... I am probably
-    // mistaken here, but I didn't see an unsigned int representation
-    // in OpenCV's classic typesystem...
 
-    /// convert to CV_32F first
 
-    src.convertTo(src,CV_32F);
-    dst = Mat::zeros(src.rows, src.cols, CV_32F);
-    for(int n=0; n<_n_pts; n++) {
+
+    int radius = _r;
+
+    int neighbors = max(min(_n_pts,31),1); // set bounds...
+    src.convertTo(src, CV_32F);
+    dst = Mat::zeros(src.rows, src.cols, CV_32SC1);
+    for(int n=0; n<neighbors; n++) {
         // sample points
-        float x = static_cast<float>(_r) * cos(2.0*M_PI*n/static_cast<float>(_r));
-        float y = static_cast<float>(_r) * -sin(2.0*M_PI*n/static_cast<float>(_r));
+        float x = static_cast<float>(radius) * cos(2.0*M_PI*n/static_cast<float>(neighbors));
+        float y = static_cast<float>(radius) * -sin(2.0*M_PI*n/static_cast<float>(neighbors));
         // relative indices
         int fx = static_cast<int>(floor(x));
         int fy = static_cast<int>(floor(y));
@@ -113,17 +114,17 @@ void LocalBinaryPattern::UniformLBP( Mat& src, Mat& dst) {
         float w3 = (1 - tx) *      ty;
         float w4 =      tx  *      ty;
         // iterate through your data
-        for(int i=_r; i < src.rows-_r;i++) {
-            for(int j=_r;j < src.cols-_r;j++) {
+        for(int i=radius; i < src.rows-radius;i++) {
+            for(int j=radius;j < src.cols-radius;j++) {
                 float t = w1*src.at<float>(i+fy,j+fx) + w2*src.at<float>(i+fy,j+cx) + w3*src.at<float>(i+cy,j+fx) + w4*src.at<float>(i+cy,j+cx);
                 // we are dealing with floating point precision, so add some little tolerance
-                dst.at<float>(i,j) += ((t > src.at<float>(i,j)) && (abs(t-src.at<float>(i,j)) > std::numeric_limits<float>::epsilon())) << n;
+                dst.at<unsigned int>(i,j) += ((t > src.at<float>(i,j)) && (abs(t-src.at<float>(i,j)) > std::numeric_limits<float>::epsilon())) << n;
+
 
                 if(_uniform){
-                if(!checkUniform((uint32_t)dst.at<float>(i,j)))
-                    dst.at<float>(i,j) = 5.0f;
+                    if(!checkUniform(dst.at<unsigned int>(i,j)))
+                        dst.at<unsigned int>(i,j) = 5;
                 }
-//                cout << dst.at<float>(i,j) <<endl;
             }
         }
     }

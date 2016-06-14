@@ -45,6 +45,7 @@
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-O2" />
+					<Add directory="include" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
@@ -57,12 +58,16 @@
 		<Unit filename="include/EventStream.h" />
 		<Unit filename="include/FrameEventFuser.h" />
 		<Unit filename="include/FrameStream.h" />
+		<Unit filename="include/LocalBinaryPattern.h" />
+		<Unit filename="include/MyHistogram.h" />
 		<Unit filename="include/StereoVision.h" />
 		<Unit filename="include/StipDetector.h" />
 		<Unit filename="main.cpp" />
 		<Unit filename="src/EventStream.cpp" />
 		<Unit filename="src/FrameEventFuser.cpp" />
 		<Unit filename="src/FrameStream.cpp" />
+		<Unit filename="src/LocalBinaryPattern.cpp" />
+		<Unit filename="src/MyHistogram.cpp" />
 		<Unit filename="src/StereoVision.cpp" />
 		<Unit filename="src/StipDetector.cpp" />
 		<Extensions>

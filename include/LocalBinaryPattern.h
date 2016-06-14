@@ -21,7 +21,7 @@ class LocalBinaryPattern
         bool checkUniform(int code);
         void UniformLBP( cv::Mat& src, cv::Mat& dst);
         int GetNumBins();
-        int GetRanges();
+        double GetRanges();
     protected:
         inline int rightshift(int num, int shift);
     private:

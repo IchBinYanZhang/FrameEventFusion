@@ -10,6 +10,7 @@
 #include "FrameStream.h"
 #include "StipDetector.h"
 #include "LocalBinaryPattern.h"
+#include "MyHistogram.h"
 
 class StereoVision
 {

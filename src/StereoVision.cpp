@@ -380,175 +380,175 @@ inline void StereoVision::MaskFromRect(const cv::Mat& img, cv::Rect& bd, cv::Mat
 
 
 //
-//bool StereoVision::Tracking2D( const cv::Mat& f0, const cv::Mat& f1, cv::Rect& bd, cv::Mat& hist, Tracking2DMethod method)
-///// f1, f0 the current frame and the previous frame
-///// bd, in parameters
-///// hist, in
-///// bd_new, out the new bounding box
-//{
-//
-//    cv::Mat roi;
-//    bool found_box = false;
-//
-//
-//    Tracking2DMethod _method = TRACKINGBYDETECTION;
-//    Mat image, image_h, image_s, image_v,image_lbp, mask = Mat::zeros(f1.size(), CV_8UC1), backproj;
-//
-//    /// histogram parameters lbp
-//    int imgCount = 3;
-//    int dims = 3;
-//    const int sizes[] = {90,128,128};
-//    const int channels[] = {0,1,2};
+bool StereoVision::Tracking2D( const cv::Mat& f0, const cv::Mat& f1, cv::Rect& bd, cv::Mat& hist, Tracking2DMethod method)
+/// f1, f0 the current frame and the previous frame
+/// bd, in parameters
+/// hist, in
+/// bd_new, out the new bounding box
+{
+
+    cv::Mat roi;
+    bool found_box = false;
+
+
+    Tracking2DMethod _method = TRACKINGBYDETECTION;
+    Mat image, image_h, image_s, image_v,image_lbp, mask = Mat::zeros(f1.size(), CV_8UC1), backproj;
+
+    /// histogram parameters lbp
+    int imgCount = 3;
+    int dims = 3;
+    const int sizes[] = {90,128,128};
+    const int channels[] = {0,1,2};
+    float hRange[] = {0,180};
+    float vRange [] = {0,256};
+    float lbpRange[] = {0,256};
+    const float *ranges[] = { hRange,vRange, lbpRange};
+    float radius = 5;
+    int n_points = 8;
+
+
+    /// histogram parameters of HSV
+
+//    int imgCount = 1;
+//    int dims = 2;
+//    const int sizes[] = {30,30};
+//    const int channels[] = {0,1};
 //    float hRange[] = {0,180};
-//    float vRange [] = {0,256};
-//    float lbpRange[] = {0,256};
-//    const float *ranges[] = { hRange,vRange, lbpRange};
-//    float radius = 5;
+//    float sRange[] = {0,256};
+//    const float *ranges[] = {hRange, sRange};
+//    float radius = 1;
 //    int n_points = 8;
-//
-//
-//    /// histogram parameters of HSV
-//
-////    int imgCount = 1;
-////    int dims = 2;
-////    const int sizes[] = {30,30};
-////    const int channels[] = {0,1};
-////    float hRange[] = {0,180};
-////    float sRange[] = {0,256};
-////    const float *ranges[] = {hRange, sRange};
-////    float radius = 1;
-////    int n_points = 8;
-//
-//    switch(method)
-//    {
-//
-//
-//        case TRACKINGBYDETECTION:
-//        /// it directly gives us the bounding box. This can be used for tracking initialization.
-//        {
-//
-//            StipDetector dec (f0, f1);
-//            dec.DefineROI();
-//            dec.GetROI(roi);
-////            cv::imshow("roi",roi);
-//            roi.convertTo(roi,CV_8UC1);
-//            double minval, maxval;
-//            cv::minMaxLoc(roi,&minval, &maxval);
-//
-//            if(minval == maxval)
-//            {
-//                std::cout << minval << " " <<maxval <<std::endl;
-//                std::cout << "no motion is detected" <<std::endl;
-//            }
-//            else
-//            {
-//                /// compute the bounding box
-//                SingleBoundingBoxFromROI(roi, bd);
-//                found_box = true;
-//
-//                /// compute the histogram
-//
-//                //CLBP
-//
-//
-////                cvtColor(f1, image, COLOR_BGR2GRAY);
-////                CLBP(image, image_lbp, radius, n_points);
-////
-////                //HSV
-////                cvtColor(f1,image,COLOR_BGR2HSV);
-////                int ch1[] = {0, 0};
-////                int ch2[] = {2, 0};
-////
-////                image_s.create(image.size(), image.depth());
-////                mixChannels(&image, 1, &image_s, 1,ch1, 1);
-////                image_v.create(image.size(), image.depth());
-////                mixChannels(&image, 1, &image_v, 1, ch2, 1);
-////
-////
-////
-////                cv::Mat imgSet [] = {image_s,image_v, image_lbp};
-//
-//                vector<Point> bd_vertices {Point(bd.x, bd.y), Point(bd.x+bd.width, bd.y),Point(bd.x+bd.width, bd.y+bd.height),Point(bd.x, bd.y+bd.height)};
-//                vector<Point> bd_poly;
-//                approxPolyDP(bd_vertices, bd_poly, 1.0, true);
-//                fillConvexPoly(mask, &bd_poly[0], (int)bd_poly.size(), 255, 8, 0);
-//
-//
-////                Mat image_lbp_roi (image_lbp, bd);
-////                Mat mask_roi(mask, bd);
-//                calcHist(imgSet, imgCount, channels, mask, hist, dims, sizes, ranges);
-////                normalize(hist, hist, 0, 255, NORM_MINMAX);
-//            }
-//
-//            break;
-//        }
-//        case CAMSHIFT:
-//        /// update the bounding box using the camshift algorithm, in which the size,location and rotation will update at the same time.
-//        {
-//
-//            /// extract motion
-//            cv::Rect bd_motion;
-//            StipDetector dec (f0, f1);
-//            dec.DefineROI();
-//            dec.GetROI(roi);
-//            roi.convertTo(roi,CV_8UC1);
-//            SingleBoundingBoxFromROI(roi, bd_motion);
-//
-//            if (bd_motion.width!=0 && bd_motion.height!=0)
-//            {
-//
-//
-//                ///extract histogram
+
+    switch(method)
+    {
+
+
+        case TRACKINGBYDETECTION:
+        /// it directly gives us the bounding box. This can be used for tracking initialization.
+        {
+
+            StipDetector dec (f0, f1);
+            dec.DefineROI();
+            dec.GetROI(roi);
+//            cv::imshow("roi",roi);
+            roi.convertTo(roi,CV_8UC1);
+            double minval, maxval;
+            cv::minMaxLoc(roi,&minval, &maxval);
+
+            if(minval == maxval)
+            {
+                std::cout << minval << " " <<maxval <<std::endl;
+                std::cout << "no motion is detected" <<std::endl;
+            }
+            else
+            {
+                /// compute the bounding box
+                SingleBoundingBoxFromROI(roi, bd);
+                found_box = true;
+
+                /// compute the histogram
+
+                //CLBP
+
+
 //                cvtColor(f1, image, COLOR_BGR2GRAY);
-//                CLBP(image,image_lbp, radius, n_points);
+//                CLBP(image, image_lbp, radius, n_points);
 //
-//                cvtColor(f1, image, COLOR_BGR2HSV);
+//                //HSV
+//                cvtColor(f1,image,COLOR_BGR2HSV);
 //                int ch1[] = {0, 0};
 //                int ch2[] = {2, 0};
+//
 //                image_s.create(image.size(), image.depth());
 //                mixChannels(&image, 1, &image_s, 1,ch1, 1);
 //                image_v.create(image.size(), image.depth());
 //                mixChannels(&image, 1, &image_v, 1, ch2, 1);
 //
 //
-//                cv::Mat imgSet[] = {image_s,image_v, image_lbp};
 //
-//                cv::calcBackProject(imgSet,imgCount,channels,hist,backproj,ranges);
-//                cv::GaussianBlur(backproj, backproj, cv::Size(0,0), 3.5,3.5, BORDER_REFLECT);
-//
-//                cv::Mat mask_motion;
-//                MaskFromRect(f1, bd_motion, mask_motion);
-//                backproj &= mask_motion;
-//
-//                RotatedRect trackBox = CamShift(backproj, bd,
-//                                    TermCriteria( TermCriteria::EPS | TermCriteria::COUNT, 10, 1 ));
-//                normalize(backproj,backproj,0,255,NORM_MINMAX);
-//                imshow("backproj", backproj);
-//                bd = trackBox.boundingRect();
-//                MaskFromRect(f1, bd, mask_motion);
-//
-//                calcHist(imgSet, imgCount, channels, mask_motion, hist, dims, sizes, ranges);
-//
-//            }
-//            else
-//            {
-//
-//            }
-//
-//
-//            found_box = true;
-//            break;
-//        }
-//
-//
-//        default:
-//            break;
-//    }
-//
-////    HistDisplay(hist, sizes[0], ranges[0] );
-//    return found_box;
-//
-//}
+//                cv::Mat imgSet [] = {image_s,image_v, image_lbp};
+
+                vector<Point> bd_vertices {Point(bd.x, bd.y), Point(bd.x+bd.width, bd.y),Point(bd.x+bd.width, bd.y+bd.height),Point(bd.x, bd.y+bd.height)};
+                vector<Point> bd_poly;
+                approxPolyDP(bd_vertices, bd_poly, 1.0, true);
+                fillConvexPoly(mask, &bd_poly[0], (int)bd_poly.size(), 255, 8, 0);
+
+
+//                Mat image_lbp_roi (image_lbp, bd);
+//                Mat mask_roi(mask, bd);
+                calcHist(imgSet, imgCount, channels, mask, hist, dims, sizes, ranges);
+//                normalize(hist, hist, 0, 255, NORM_MINMAX);
+            }
+
+            break;
+        }
+        case CAMSHIFT:
+        /// update the bounding box using the camshift algorithm, in which the size,location and rotation will update at the same time.
+        {
+
+            /// extract motion
+            cv::Rect bd_motion;
+            StipDetector dec (f0, f1);
+            dec.DefineROI();
+            dec.GetROI(roi);
+            roi.convertTo(roi,CV_8UC1);
+            SingleBoundingBoxFromROI(roi, bd_motion);
+
+            if (bd_motion.width!=0 && bd_motion.height!=0)
+            {
+
+
+                ///extract histogram
+                cvtColor(f1, image, COLOR_BGR2GRAY);
+                CLBP(image,image_lbp, radius, n_points);
+
+                cvtColor(f1, image, COLOR_BGR2HSV);
+                int ch1[] = {0, 0};
+                int ch2[] = {2, 0};
+                image_s.create(image.size(), image.depth());
+                mixChannels(&image, 1, &image_s, 1,ch1, 1);
+                image_v.create(image.size(), image.depth());
+                mixChannels(&image, 1, &image_v, 1, ch2, 1);
+
+
+                cv::Mat imgSet[] = {image_s,image_v, image_lbp};
+
+                cv::calcBackProject(imgSet,imgCount,channels,hist,backproj,ranges);
+                cv::GaussianBlur(backproj, backproj, cv::Size(0,0), 3.5,3.5, BORDER_REFLECT);
+
+                cv::Mat mask_motion;
+                MaskFromRect(f1, bd_motion, mask_motion);
+                backproj &= mask_motion;
+
+                RotatedRect trackBox = CamShift(backproj, bd,
+                                    TermCriteria( TermCriteria::EPS | TermCriteria::COUNT, 10, 1 ));
+                normalize(backproj,backproj,0,255,NORM_MINMAX);
+                imshow("backproj", backproj);
+                bd = trackBox.boundingRect();
+                MaskFromRect(f1, bd, mask_motion);
+
+                calcHist(imgSet, imgCount, channels, mask_motion, hist, dims, sizes, ranges);
+
+            }
+            else
+            {
+
+            }
+
+
+            found_box = true;
+            break;
+        }
+
+
+        default:
+            break;
+    }
+
+//    HistDisplay(hist, sizes[0], ranges[0] );
+    return found_box;
+
+}
 
 
 void StereoVision::ImageRectification(cv::Mat& frame1, cv::Mat& frame2, cv::Mat& out1,
@@ -1040,49 +1040,49 @@ bool StereoVision::Tracking3D(const cv::Mat& f0_pre, const cv::Mat& f0_cur, cv::
 
 
 
-
-    ///Local binary pattern setting
-
-    int n_scales = 3;
-    int radius = 1;
-    int n_points = 8;
-    LocalBinaryPattern pattern0 (radius, n_points, false);
-    LocalBinaryPattern pattern1 (2*radius, 2*n_points, false);
-    LocalBinaryPattern pattern2 (3*radius, 3*n_points, false);
-
-
-
-    /// histogram parameters
-    int imgCount = 1;
-    int dims = 1;
-    const int bin0 = pattern0.GetNumBins();
-    const int bin1 = pattern1.GetNumBins();
-    const int bin2 = pattern2.GetNumBins();
-
-
-    int range0 = pattern0.GetRanges();
-    int range1 = pattern1.GetRanges();
-    int range2 = pattern2.GetRanges();
-
-    cout << range0<<endl;
-    const int sizes[] = {bin0/3};
-    const int channels[] = {0,1};
-    float hRange[] = {0,128};
-    float sRange [] = {0,256};
-    float vRange [] = {0,256};
-    float lbp0Range[] = {0,range0};
-    float lbp1Range[] = {0,range1};
-    float lbp2Range[] = {0,range2};
-
-
-    const float *ranges[] = { lbp0Range};
-
-
-    int ch1[] = {0, 0};
-    int ch2[] = {1, 0};
-    int ch3[] = {2, 0};
-
-
+//
+//    ///Local binary pattern setting
+//
+//    int n_scales = 3;
+//    int radius = 1;
+//    int n_points = 8;
+//    LocalBinaryPattern pattern0 (radius, n_points, false);
+//    LocalBinaryPattern pattern1 (2*radius, 2*n_points, false);
+//    LocalBinaryPattern pattern2 (3*radius, 3*n_points, false);
+//
+//
+//
+//    /// histogram parameters
+//    int imgCount = 1;
+//    int dims = 1;
+//    const int bin0 = pattern0.GetNumBins();
+//    const int bin1 = pattern1.GetNumBins();
+//    const int bin2 = pattern2.GetNumBins();
+//
+//
+//    int range0 = pattern0.GetRanges();
+//    int range1 = pattern1.GetRanges();
+//    int range2 = pattern2.GetRanges();
+//
+//    cout << range0<<endl;
+//    const int sizes[] = {bin0/3};
+//    const int channels[] = {0,1};
+//    float hRange[] = {0,128};
+//    float sRange [] = {0,256};
+//    float vRange [] = {0,256};
+//    float lbp0Range[] = {0,range0};
+//    float lbp1Range[] = {0,range1};
+//    float lbp2Range[] = {0,range2};
+//
+//
+//    const float *ranges[] = { lbp0Range};
+//
+//
+//    int ch1[] = {0, 0};
+//    int ch2[] = {1, 0};
+//    int ch3[] = {2, 0};
+//
+//
 
 
 
@@ -1095,7 +1095,7 @@ bool StereoVision::Tracking3D(const cv::Mat& f0_pre, const cv::Mat& f0_cur, cv::
         /// it directly gives us the bounding box. This can be used for tracking initialization.
         {
             cv::Rect bd0_tmp, bd1_tmp;
-
+            cv::Mat mask0, mask1;
             StipDetector dec0 (f0_pre, f0_cur);
             dec0.DefineROI();
             dec0.GetROI(roi0);
@@ -1109,7 +1109,11 @@ bool StereoVision::Tracking3D(const cv::Mat& f0_pre, const cv::Mat& f0_cur, cv::
             SingleBoundingBoxFromROI(roi1, bd1_tmp);
 
 
-            if(bd0_tmp.area() <= 8000 || bd1_tmp.area() <= 8000)
+
+
+
+
+            if(bd0_tmp.area() <= 5000 || bd1_tmp.area() <= 5000)
             {
                 std::cout << " -- no motion is detected." <<std::endl;
             }
@@ -1129,16 +1133,27 @@ bool StereoVision::Tracking3D(const cv::Mat& f0_pre, const cv::Mat& f0_cur, cv::
 
                 /// compute the histogram
 
-                //CLBP
-                cvtColor(f0_cur, image0, COLOR_BGR2GRAY);
-                pattern0.UniformLBP(image0, image0_lbp);
-                pattern1.UniformLBP(image0, image0_lbp1);
-                pattern2.UniformLBP(image0, image0_lbp2);
+                MyHistogram hist_generator0(f0_cur, bd0, MyHistogram::HSVLBP);
+                MyHistogram hist_generator1(f1_cur, bd1, MyHistogram::HSVLBP);
 
-                cvtColor(f1_cur, image1, COLOR_BGR2GRAY);
-                pattern0.UniformLBP(image1, image1_lbp);
-                pattern1.UniformLBP(image1, image1_lbp1);
-                pattern2.UniformLBP(image1, image1_lbp2);
+                hist_generator0.ComputeHist();
+                hist_generator1.ComputeHist();
+                hist_generator0.GetHist(hist0);
+                hist_generator1.GetHist(hist1);
+
+
+
+
+                //CLBP
+//                cvtColor(f0_cur, image0, COLOR_BGR2GRAY);
+//                pattern0.UniformLBP(image0, image0_lbp);
+//                pattern1.UniformLBP(image0, image0_lbp1);
+//                pattern2.UniformLBP(image0, image0_lbp2);
+//
+//                cvtColor(f1_cur, image1, COLOR_BGR2GRAY);
+//                pattern0.UniformLBP(image1, image1_lbp);
+//                pattern1.UniformLBP(image1, image1_lbp1);
+//                pattern2.UniformLBP(image1, image1_lbp2);
 
 
                 //HSV
@@ -1184,35 +1199,35 @@ bool StereoVision::Tracking3D(const cv::Mat& f0_pre, const cv::Mat& f0_cur, cv::
 
 //                image0_lbp.convertTo(image0_lbp, CV_8UC1);
 //                image1_lbp.convertTo(image1_lbp, CV_8UC1);
-                cv::Mat imgSet0 [] = {image0_lbp};
-                cv::Mat imgSet1 [] = {image1_lbp};
-
-
-
-
-
-                vector<Point> bd_vertices0 {Point(bd0.x, bd0.y), Point(bd0.x+bd0.width, bd0.y),Point(bd0.x+bd0.width, bd0.y+bd0.height),Point(bd0.x, bd0.y+bd0.height)};
-                vector<Point> bd_poly0;
-                approxPolyDP(bd_vertices0, bd_poly0, 1.0, true);
-
-                vector<Point> bd_vertices1 {Point(bd1.x, bd1.y), Point(bd1.x+bd1.width, bd1.y),Point(bd1.x+bd1.width, bd1.y+bd1.height),Point(bd1.x, bd1.y+bd1.height)};
-                vector<Point> bd_poly1;
-                approxPolyDP(bd_vertices1, bd_poly1, 1.0, true);
-
-
-                fillConvexPoly(mask, &bd_poly0[0], (int)bd_poly0.size(), 255, 8, 0);
-                calcHist(imgSet0, imgCount, channels, mask, hist0, dims, sizes, ranges);
-
-                imshow("mask", mask);
-                cout << mask.depth()<<endl;
-                waitKey(0);
-
-
-                fillConvexPoly(mask, &bd_poly1[0], (int)bd_poly1.size(), 255, 8, 0);
-                calcHist(imgSet1, imgCount, channels, mask, hist1, dims, sizes, ranges);
-
-                normalize(hist0, hist0, 0,1,NORM_MINMAX);
-                normalize(hist1, hist1, 0,1,NORM_MINMAX);
+//                cv::Mat imgSet0 [] = {image0_lbp};
+//                cv::Mat imgSet1 [] = {image1_lbp};
+//
+//
+//
+//
+//
+//                vector<Point> bd_vertices0 {Point(bd0.x, bd0.y), Point(bd0.x+bd0.width, bd0.y),Point(bd0.x+bd0.width, bd0.y+bd0.height),Point(bd0.x, bd0.y+bd0.height)};
+//                vector<Point> bd_poly0;
+//                approxPolyDP(bd_vertices0, bd_poly0, 1.0, true);
+//
+//                vector<Point> bd_vertices1 {Point(bd1.x, bd1.y), Point(bd1.x+bd1.width, bd1.y),Point(bd1.x+bd1.width, bd1.y+bd1.height),Point(bd1.x, bd1.y+bd1.height)};
+//                vector<Point> bd_poly1;
+//                approxPolyDP(bd_vertices1, bd_poly1, 1.0, true);
+//
+//
+//                fillConvexPoly(mask, &bd_poly0[0], (int)bd_poly0.size(), 255, 8, 0);
+//                calcHist(imgSet0, imgCount, channels, mask, hist0, dims, sizes, ranges);
+//
+//                imshow("mask", mask);
+//                cout << mask.depth()<<endl;
+//                waitKey(0);
+//
+//
+//                fillConvexPoly(mask, &bd_poly1[0], (int)bd_poly1.size(), 255, 8, 0);
+//                calcHist(imgSet1, imgCount, channels, mask, hist1, dims, sizes, ranges);
+//
+//                normalize(hist0, hist0, 0,1,NORM_MINMAX);
+//                normalize(hist1, hist1, 0,1,NORM_MINMAX);
 
                 }
                 else{
@@ -1306,93 +1321,104 @@ bool StereoVision::Tracking3D(const cv::Mat& f0_pre, const cv::Mat& f0_cur, cv::
 
 
 
-            ///extract histogram and back projection pdf
+                ///extract histogram and back projection pdf
 
-            //CLBP
-                cvtColor(f0_cur, image0, COLOR_BGR2GRAY);
-                pattern0.UniformLBP(image0, image0_lbp);
-                pattern1.UniformLBP(image0, image0_lbp1);
-                pattern2.UniformLBP(image0, image0_lbp2);
-
-                cvtColor(f1_cur, image1, COLOR_BGR2GRAY);
-                pattern0.UniformLBP(image1, image1_lbp);
-                pattern1.UniformLBP(image1, image1_lbp1);
-                pattern2.UniformLBP(image1, image1_lbp2);
-
-//                normalize(image0_lbp, image0_lbp, 0,255,NORM_MINMAX);
-//                normalize(image0_lbp1, image0_lbp1, 0,255,NORM_MINMAX);
-//
-//                normalize(image1_lbp, image1_lbp, 0,255,NORM_MINMAX);
-//                normalize(image1_lbp1, image1_lbp1, 0,255,NORM_MINMAX);
+                //CLBP
+                MyHistogram hist_generator0(f0_cur, bd0, MyHistogram::HSVLBP);
+                MyHistogram hist_generator1(f1_cur, bd1, MyHistogram::HSVLBP);
+                cout << "1"<<endl;
+                hist_generator0.SetHist(hist0);
+                hist_generator1.SetHist(hist1);
+                cout << "2"<<endl;
+                hist_generator0.BackProjection(f0_cur, backproj0);
+                hist_generator1.BackProjection(f1_cur, backproj1);
+                cout << "3"<<endl;
 
 
-
-//                image0_lbp.convertTo(image0_lbp, CV_8UC1);
-//                image1_lbp.convertTo(image1_lbp, CV_8UC1);
-//                image0.convertTo(image0,CV_8UC1);
-                cv::Mat imgSet0 [] = {image0_lbp};
-                cv::Mat imgSet1 [] = {image1_lbp};
-
-                imshow("image0", image0);
-                imshow("lbp0", image0_lbp);
-                imshow("lbp1", image0_lbp1);
-
-//            cvtColor(f0_cur, image0, COLOR_BGR2GRAY);
-//            CLBP(image0,image0_lbp, radius, n_points);
+//                cvtColor(f0_cur, image0, COLOR_BGR2GRAY);
+//                pattern0.UniformLBP(image0, image0_lbp);
+//                pattern1.UniformLBP(image0, image0_lbp1);
+//                pattern2.UniformLBP(image0, image0_lbp2);
 //
-//            cvtColor(f1_cur, image1, COLOR_BGR2GRAY);
-//            CLBP(image1,image1_lbp, radius, n_points);
+//                cvtColor(f1_cur, image1, COLOR_BGR2GRAY);
+//                pattern0.UniformLBP(image1, image1_lbp);
+//                pattern1.UniformLBP(image1, image1_lbp1);
+//                pattern2.UniformLBP(image1, image1_lbp2);
 //
-//
-//            ///hsv
-//            cvtColor(f0_cur, image0, COLOR_BGR2HSV);
-//            cvtColor(f1_cur, image1, COLOR_BGR2HSV);
-//
-//
-//            ///rgb
-////            image0 = f0_cur.clone();
-////            image1 = f1_cur.clone();
-//
-//            image0_h.create(image0.size(), image0.depth());
-//            mixChannels(&image0, 1, &image0_h, 1,ch1, 1);
-//            image0_s.create(image0.size(), image0.depth());
-//            mixChannels(&image0, 1, &image0_s, 1, ch2, 1);
-//            image0_v.create(image0.size(), image0.depth());
-//            mixChannels(&image0, 1, &image0_v, 1, ch3, 1);
-//
-//            image1_h.create(image1.size(), image1.depth());
-//            mixChannels(&image1, 1, &image1_h, 1,ch1, 1);
-//            image1_s.create(image1.size(), image1.depth());
-//            mixChannels(&image1, 1, &image1_s, 1, ch2, 1);
-//            image1_v.create(image1.size(), image1.depth());
-//            mixChannels(&image1, 1, &image1_v, 1, ch3, 1);
+////                normalize(image0_lbp, image0_lbp, 0,255,NORM_MINMAX);
+////                normalize(image0_lbp1, image0_lbp1, 0,255,NORM_MINMAX);
+////
+////                normalize(image1_lbp, image1_lbp, 0,255,NORM_MINMAX);
+////                normalize(image1_lbp1, image1_lbp1, 0,255,NORM_MINMAX);
 //
 //
 //
-////                image1_s.create(image1.size(), image1.depth());
-////                mixChannels(&image1, 1, &image1_s, 1,ch1, 1);
-////                image1_v.create(image1.size(), image1.depth());
-////                mixChannels(&image1, 1, &image1_v, 1, ch2, 1);
+////                image0_lbp.convertTo(image0_lbp, CV_8UC1);
+////                image1_lbp.convertTo(image1_lbp, CV_8UC1);
+////                image0.convertTo(image0,CV_8UC1);
+//                cv::Mat imgSet0 [] = {image0_lbp};
+//                cv::Mat imgSet1 [] = {image1_lbp};
+//
+//                imshow("image0", image0);
+//                imshow("lbp0", image0_lbp);
+//                imshow("lbp1", image0_lbp1);
+//
+////            cvtColor(f0_cur, image0, COLOR_BGR2GRAY);
+////            CLBP(image0,image0_lbp, radius, n_points);
+////
+////            cvtColor(f1_cur, image1, COLOR_BGR2GRAY);
+////            CLBP(image1,image1_lbp, radius, n_points);
+////
+////
+////            ///hsv
+////            cvtColor(f0_cur, image0, COLOR_BGR2HSV);
+////            cvtColor(f1_cur, image1, COLOR_BGR2HSV);
+////
+////
+////            ///rgb
+//////            image0 = f0_cur.clone();
+//////            image1 = f1_cur.clone();
+////
+////            image0_h.create(image0.size(), image0.depth());
+////            mixChannels(&image0, 1, &image0_h, 1,ch1, 1);
+////            image0_s.create(image0.size(), image0.depth());
+////            mixChannels(&image0, 1, &image0_s, 1, ch2, 1);
+////            image0_v.create(image0.size(), image0.depth());
+////            mixChannels(&image0, 1, &image0_v, 1, ch3, 1);
+////
+////            image1_h.create(image1.size(), image1.depth());
+////            mixChannels(&image1, 1, &image1_h, 1,ch1, 1);
+////            image1_s.create(image1.size(), image1.depth());
+////            mixChannels(&image1, 1, &image1_s, 1, ch2, 1);
+////            image1_v.create(image1.size(), image1.depth());
+////            mixChannels(&image1, 1, &image1_v, 1, ch3, 1);
+////
+////
+////
+//////                image1_s.create(image1.size(), image1.depth());
+//////                mixChannels(&image1, 1, &image1_s, 1,ch1, 1);
+//////                image1_v.create(image1.size(), image1.depth());
+//////                mixChannels(&image1, 1, &image1_v, 1, ch2, 1);
+////
+////
+////
+////            cv::Mat imgSet0 [] = {image0_h, image0_s,image0_v, image0_lbp};
+////            cv::Mat imgSet1 [] = {image0_h, image1_s,image1_v, image1_lbp};
 //
 //
+//            cv::calcBackProject(imgSet0,imgCount,channels,hist0,backproj0,ranges);
+//            cv::calcBackProject(imgSet1,imgCount,channels,hist1,backproj1,ranges);
 //
-//            cv::Mat imgSet0 [] = {image0_h, image0_s,image0_v, image0_lbp};
-//            cv::Mat imgSet1 [] = {image0_h, image1_s,image1_v, image1_lbp};
+//
+//            cout << backproj0.depth() << " " << hist0.depth() <<endl;
+//
+//            backproj0.convertTo(backproj0, CV_32F); // normalize backproj as a pdf
+//            backproj1.convertTo(backproj1, CV_32F);
+//            normalize(backproj0, backproj0,0,1,NORM_MINMAX);
+//            normalize(backproj1, backproj1,0,1,NORM_MINMAX);
 
-
-            cv::calcBackProject(imgSet0,imgCount,channels,hist0,backproj0,ranges);
-            cv::calcBackProject(imgSet1,imgCount,channels,hist1,backproj1,ranges);
-
-
-            cout << backproj0.depth() << " " << hist0.depth() <<endl;
-
-            backproj0.convertTo(backproj0, CV_32F); // normalize backproj as a pdf
-            backproj1.convertTo(backproj1, CV_32F);
-            normalize(backproj0, backproj0,0,1,NORM_MINMAX);
-            normalize(backproj1, backproj1,0,1,NORM_MINMAX);
-
-            cv::GaussianBlur(backproj0, backproj0, cv::Size(0,0), 2.5,2.5, BORDER_REFLECT);
-            cv::GaussianBlur(backproj1, backproj1, cv::Size(0,0), 2.5,2.5, BORDER_REFLECT);
+            cv::GaussianBlur(backproj0, backproj0, cv::Size(0,0), 1.0,1.0, BORDER_REFLECT);
+            cv::GaussianBlur(backproj1, backproj1, cv::Size(0,0), 1.0,1.0, BORDER_REFLECT);
 
             cv::imshow("color0", backproj0);
             cv::imshow("color1", backproj1);
@@ -1410,7 +1436,7 @@ bool StereoVision::Tracking3D(const cv::Mat& f0_pre, const cv::Mat& f0_cur, cv::
             /// pdf from epipolar geometry
             pdf_epi1 = Mat::zeros(backproj1.size(), CV_32F );
             pdf_epi0 = Mat::zeros(backproj0.size(), CV_32F );
-            for(int k = 0; k < 3; k++)
+            for(int k = 0; k < 1; k++)
             {
 
 
@@ -1438,8 +1464,8 @@ bool StereoVision::Tracking3D(const cv::Mat& f0_pre, const cv::Mat& f0_cur, cv::
 
                 }
 
-                cv::GaussianBlur(pdf_epi0, pdf_epi0, cv::Size(0,0), 0.01,18.5, BORDER_REFLECT);
-                cv::GaussianBlur(pdf_epi1, pdf_epi1, cv::Size(0,0), 0.01,18.5, BORDER_REFLECT);
+                cv::GaussianBlur(pdf_epi0, pdf_epi0, cv::Size(0,0), 0.5,18.5, BORDER_REFLECT);
+                cv::GaussianBlur(pdf_epi1, pdf_epi1, cv::Size(0,0), 0.5,18.5, BORDER_REFLECT);
 
 
 
@@ -1455,42 +1481,54 @@ bool StereoVision::Tracking3D(const cv::Mat& f0_pre, const cv::Mat& f0_cur, cv::
                 post1.convertTo(post1,CV_8UC1, 255);
 
 
-                MaskFromRect(f0_cur, bd0_motion, mask0_motion);
-                MaskFromRect(f1_cur, bd1_motion, mask1_motion);
-                post0 &= mask0_motion;
-                post1 &= mask1_motion;
+//                MaskFromRect(f0_cur, bd0_motion, mask0_motion);
+//                MaskFromRect(f1_cur, bd1_motion, mask1_motion);
+//                post0 &= mask0_motion;
+//                post1 &= mask1_motion;
 
 
                 /// meanshift update
-                meanShift(post0,bd0, TermCriteria( TermCriteria::EPS | TermCriteria::COUNT, 10, 1 ));
-                meanShift(post1,bd1, TermCriteria( TermCriteria::EPS | TermCriteria::COUNT, 10, 1 ));
+                meanShift(backproj0,bd0, TermCriteria( TermCriteria::EPS | TermCriteria::COUNT, 10, 1 ));
+                meanShift(backproj1,bd1, TermCriteria( TermCriteria::EPS | TermCriteria::COUNT, 10, 1 ));
 
 
             }
-//            RotatedRect trackBox0 = CamShift(post0, bd0,
+//            RotatedRect trackBox0 = CamShift(backproj0, bd0_motion,
 //                                TermCriteria( TermCriteria::EPS | TermCriteria::COUNT, 10, 1 ));
 //
-//            RotatedRect trackBox1 = CamShift(post1, bd1,
+//            RotatedRect trackBox1 = CamShift(backproj1, bd1_motion,
 //                                TermCriteria( TermCriteria::EPS | TermCriteria::COUNT, 10, 1 ));
-//
-//
+
+
 //            bd0 = trackBox0.boundingRect();
 //            bd1 = trackBox1.boundingRect();
             normalize(post0, post0, 128,255, NORM_MINMAX);
             normalize(post1, post1, 128,255, NORM_MINMAX);
             imshow("afterwards0", post0);
             imshow("afterwards1", post1);
-            waitKey(0);
+//            waitKey(0);
+
+
             cout << "-- recalculate histogram" <<endl;
-            MaskFromRect(f0_cur, bd0, mask0_motion);
-            calcHist(imgSet0, imgCount, channels, mask0_motion, hist0, dims, sizes, ranges);
 
+            hist_generator0.SetBoundingBox(bd0);
+            hist_generator1.SetBoundingBox(bd1);
+            hist_generator0.ComputeHist();
+            hist_generator1.ComputeHist();
+            hist_generator0.GetHist(hist0);
+            hist_generator1.GetHist(hist1);
 
-            MaskFromRect(f1_cur, bd1, mask1_motion);
-            calcHist(imgSet1, imgCount, channels, mask1_motion, hist1, dims, sizes, ranges);
+//            cout << hist0 <<endl;
 
-            normalize(hist0, hist0, 0,1,NORM_MINMAX);
-            normalize(hist1, hist1, 0,1,NORM_MINMAX);
+//            MaskFromRect(f0_cur, bd0, mask0_motion);
+//            calcHist(imgSet0, imgCount, channels, mask0_motion, hist0, dims, sizes, ranges);
+//
+//
+//            MaskFromRect(f1_cur, bd1, mask1_motion);
+//            calcHist(imgSet1, imgCount, channels, mask1_motion, hist1, dims, sizes, ranges);
+
+//            normalize(hist0, hist0, 0,1,NORM_MINMAX);
+//            normalize(hist1, hist1, 0,1,NORM_MINMAX);
 
             }
 
@@ -1531,7 +1569,7 @@ bool StereoVision::Tracking3D(const cv::Mat& f0_pre, const cv::Mat& f0_cur, cv::
 inline void StereoVision::ImagePreprocessing(const cv::Mat& f, cv::Mat& out)
 ///this function will Gaussian smooth it
 {
-    float sigma = 1.0;
+    float sigma = 2.5;
 //    cv::cvtColor(f, out, cv::COLOR_BGR2GRAY);
     cv::GaussianBlur(f, out, cv::Size(0,0), sigma,sigma, BORDER_REFLECT);
 
