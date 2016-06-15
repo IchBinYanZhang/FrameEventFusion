@@ -25,6 +25,8 @@ class MyHistogram
         void SetHist(const cv::Mat& hist);
         void GetHist(cv::Mat& out);
         void ComputeHist();
+        void ComputeHist(cv::Mat& image, FeatureSpace method, cv::Mat& mask, cv::Mat& hist);
+        void ComputeHistWeights(const cv::Mat& weights);
         void BackProjection(const cv::Mat& in, cv::Mat& backproj);
 
 

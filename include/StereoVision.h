@@ -16,7 +16,7 @@ class StereoVision
 {
     public:
         enum Tracking2DMethod {TRACKINGBYDETECTION, CAMSHIFT};
-        enum Tracking3DMethod {TRACKINGBYDETECTION3, EPICAMSHIFT};
+        enum Tracking3DMethod {TRACKINGBYDETECTION3, EPICAMSHIFT, KALMAN3D};
         enum FeatureMethod {HSVLBP, HOG};
 
         StereoVision();
@@ -40,7 +40,7 @@ class StereoVision
         void IsSynchronizedTwoStreams();
         void BlockMatching(cv::Mat& frame1, cv::Mat& frame2, cv::Mat& frame1_roi,cv::Mat& frame2_roi, cv::Mat& out);
         void BlockMatching2(cv::Mat& frame1, cv::Mat& frame2, cv::Mat& frame1_roi, cv::Mat& out);
-        void Tracking3DInitialize(cv::Mat& f1_pre, cv::Mat& f2_pre, cv::Mat& f1_cur, cv::Mat& f2_cur);
+        void Tracking3DInitialize(cv::Mat& f1_pre, cv::Mat& f1_cur, cv::Mat& f2_pre, cv::Mat& f2_cur, cv::Mat& center);
         void HomographyToGround(cv::Mat& img_cb, bool);
         bool Tracking2D(const cv::Mat& f1, const cv::Mat& f0, cv::Rect& bd, cv::Mat& hist, Tracking2DMethod method);
         virtual ~StereoVision();
@@ -80,6 +80,7 @@ class StereoVision
         std::vector<cv::Mat> _dist_coeff;
         std::vector<cv::Mat> _rotation_mat;
         std::vector<cv::Mat> _trans_vec;
+        std::vector<cv::Mat> _projection_mat;
         cv::Mat _H; // for the specific cam of the corresponding checkerboard image
         int _nx,_ny;
 

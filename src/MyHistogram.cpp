@@ -33,6 +33,12 @@ MyHistogram::MyHistogram(const cv::Mat& image, const cv::Rect& bd0, FeatureSpace
 
 
 
+
+
+
+
+
+
 void MyHistogram::SetImage(const cv::Mat& image)
 {
     _img = image.clone();
@@ -101,15 +107,20 @@ void MyHistogram::ComputeHist()
             cv::cvtColor(_img, image0, COLOR_BGR2HSV);
             int imgCount = 3;
             int dims = 3;
-            const int sizes[] = {90,256,128};
+            const int sizes[] = {45,64,64};
             const int channels[] = {0,1,2};
-            float hRange[] = {0,180};
-            float sRange[] = {0,256};
-            float vRange[] = {0,256};
+            float hRange[] = {0,1};
+            float sRange[] = {0,1};
+            float vRange[] = {0,1};
             const float *ranges[] = {hRange,sRange,vRange};
 
 
             split(image0, splitHSV);
+            splitHSV[0].convertTo(splitHSV[0], CV_32F, 1.0f/180);
+            splitHSV[1].convertTo(splitHSV[1], CV_32F, 1.0f/256);
+            splitHSV[2].convertTo(splitHSV[2], CV_32F, 1.0f/256);
+
+
             Mat imageSet[] = {splitHSV[0],splitHSV[1], splitHSV[2]};
 
             calcHist(imageSet, imgCount, channels, _mask, _hist, dims, sizes, ranges);
@@ -203,6 +214,137 @@ void MyHistogram::ComputeHist()
 
 
 
+void MyHistogram::ComputeHist(cv::Mat& image, FeatureSpace method, cv::Mat& mask, cv::Mat& hist)
+{
+    switch(_method)
+    {
+    case RGB:
+        {
+            int imgCount = 1;
+            int dims = 3;
+            const int sizes[] = {256,256,256};
+            const int channels[] = {0,1,2};
+            float rRange[] = {0,256};
+            float gRange[] = {0,256};
+            float bRange[] = {0,256};
+            const float *ranges[] = {rRange,gRange,bRange};
+            calcHist(&image, imgCount, channels, mask, hist, dims, sizes, ranges);
+            break;
+        }
+
+    case HSV:
+
+        {
+            Mat image0;
+            vector<Mat> splitHSV;
+            cv::cvtColor(image, image0, COLOR_BGR2HSV);
+            int imgCount = 3;
+            int dims = 3;
+            const int sizes[] = {30,50,50};
+            const int channels[] = {0,1,2};
+            float hRange[] = {0,1};
+            float sRange[] = {0,1};
+            float vRange[] = {0,1};
+            const float *ranges[] = {hRange,sRange, vRange};
+
+
+            split(image0, splitHSV);
+            splitHSV[0].convertTo(splitHSV[0], CV_32F, 1.0f/180);
+            splitHSV[1].convertTo(splitHSV[1], CV_32F, 1.0f/256);
+            splitHSV[2].convertTo(splitHSV[2], CV_32F, 1.0f/256);
+
+
+            Mat imageSet[] = {splitHSV[0],splitHSV[1], splitHSV[2]};
+
+            calcHist(imageSet, imgCount, channels, mask, hist, dims, sizes, ranges);
+            break;
+        }
+
+
+    case LBP:
+        /// only single layer uniform local binary pattern, R = 1, P = 8
+        {
+
+
+            Mat img_gray, img_lbp;
+            cv::cvtColor(image, img_gray, COLOR_BGR2GRAY);
+            int radius = 1;
+            int points = 8;
+            LocalBinaryPattern pattern0(radius, points, false);
+            pattern0.UniformLBP(img_gray, img_lbp);
+            img_lbp.convertTo(img_lbp, CV_32F, 1.0/255);
+
+            /// histogram parameters
+            int imgCount = 1;
+            int dims = 1;
+            const int bin0 = pattern0.GetNumBins();
+            int range0 = pattern0.GetRanges();
+
+            const int sizes[] = {100};
+            const int channels[] = {0};
+            float lbp0Range[] = {0,1};
+            const float *ranges[] = { lbp0Range};
+            calcHist(&img_lbp, imgCount, channels, mask, hist, dims, sizes, ranges);
+            hist = hist/cv::norm(_hist,NORM_L2);
+
+            break;
+
+          }
+
+
+
+    case HSVLBP:
+        {
+            Mat image0;
+            vector<Mat> splitHSV;
+            cv::cvtColor(image, image0, COLOR_BGR2HSV);
+            int imgCount = 4;
+            int dims = 4;
+            const int sizes[] = {30,30,40,80};
+            const int channels[] = {0,1,2,3};
+            float hRange[] = {0,1};
+            float sRange[] = {0,1};
+            float vRange[] = {0,1};
+            float lbpRange0[] = {0,1};
+            float lbpRange1[] = {0,1};
+            const float *ranges[] = {hRange,sRange,lbpRange0, lbpRange1};
+
+
+            split(image0, splitHSV);
+            splitHSV[0].convertTo(splitHSV[0], CV_32F, 1/180);
+            splitHSV[1].convertTo(splitHSV[1], CV_32F, 1/256);
+
+
+            Mat img_gray, img_lbp0, img_lbp1;
+            cvtColor(image, img_gray, COLOR_BGR2GRAY);
+            LocalBinaryPattern pattern0 (1,8, true);
+            LocalBinaryPattern pattern1 (2,16, true);
+            pattern0.UniformLBP(img_gray, img_lbp0);
+            pattern1.UniformLBP(img_gray, img_lbp1);
+            img_lbp0.convertTo(img_lbp0, CV_32F, 1.0/255);
+            img_lbp1.convertTo(img_lbp1, CV_32F, 1.0/255);
+
+
+
+            Mat imageSet[] = {splitHSV[0],splitHSV[1], img_lbp0, img_lbp1};
+
+            calcHist(imageSet, imgCount, channels, mask, hist, dims, sizes, ranges);
+            hist = hist/cv::norm(_hist,NORM_L2);
+
+            break;
+        }
+    default:
+        cout << "NOTE: no other features are implemented so far" <<endl;
+        break;
+
+
+
+    }
+
+}
+
+
+
 
 
 
@@ -233,6 +375,37 @@ inline void MyHistogram::SingleBoundingBoxFromROI(cv::Mat& roi, cv::Rect& bd)
 }
 
 
+
+
+
+void MyHistogram::ComputeHistWeights(const cv::Mat& weights)
+/// assume that weights are in (0,1) with float
+{
+    int n_level = 5;
+    float h = 1.0f/n_level;
+    Mat w, img_temp,hist_temp;
+    vector<Mat> histograms;
+
+    for(int i =0; i < n_level; i++)
+    {
+
+        threshold(weights, w, i*h, 1.0, THRESH_TOZERO);
+        w.convertTo(w,CV_8UC1, 255);
+
+        ComputeHist(_img, _method, w,hist_temp);
+
+        histograms.push_back(hist_temp.clone());
+    }
+
+    _hist = hist_temp.clone();
+
+    for(int i = 0; i<histograms.size()-1; i++){
+
+        _hist =_hist + histograms[i];
+
+    }
+
+}
 
 
 
@@ -273,7 +446,7 @@ void MyHistogram::BackProjection( const cv::Mat& in, cv::Mat& backproj)
             cv::cvtColor(in, image0, COLOR_BGR2HSV);
             int imgCount = 3;
             int dims = 3;
-            const int sizes[] = {90,256,128};
+            const int sizes[] = {90,128,1};
             const int channels[] = {0,1,2};
             float hRange[] = {0,180};
             float sRange[] = {0,256};

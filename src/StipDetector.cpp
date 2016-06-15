@@ -329,6 +329,41 @@ void StipDetector::GetKeyPoints(vector<cv::KeyPoint>& corners)
 
 
 
+inline void SingleBoundingBoxFromROI(cv::Mat& roi, cv::Rect& bd)
+/// single object bounding box
+{
+
+    std::vector<cv::Point> pts;
+    cv::Mat roi_w;
+    roi.convertTo(roi_w,CV_8UC1);
+
+    /// Find points
+    for(int i = 0; i < roi_w.rows; i++)
+    {
+        uint8_t* ptr = roi_w.ptr<uint8_t>(i);
+        for(int j = 0; j < roi_w.cols; j++)
+        {
+            if(ptr[j] !=0)
+                pts.push_back(cv::Point(j,i));
+        }
+    }
+
+    /// Approximate contours to polygons + get bounding rects and circles
+    bd = boundingRect( pts );
+
+}
+
+
+inline void MaskFromRect(const cv::Mat& img, cv::Rect& bd, cv::Mat& out)
+{
+    out = cv::Mat::zeros(img.size(), img.depth());
+    vector<Point> bd_vertices {Point(bd.x, bd.y), Point(bd.x+bd.width, bd.y),Point(bd.x+bd.width, bd.y+bd.height),Point(bd.x, bd.y+bd.height)};
+    vector<Point> bd_poly;
+    approxPolyDP(bd_vertices, bd_poly, 1.0, true);
+    fillConvexPoly(out, &bd_poly[0], (int)bd_poly.size(), 255, 8, 0);
+}
+
+
 void StipDetector::detect(StipDetector::FeatureMethod method = STIP)
 {
     float min_val, max_val;
@@ -338,7 +373,12 @@ void StipDetector::detect(StipDetector::FeatureMethod method = STIP)
     cv::Mat frame, roi;
 
     int i,j;
+    cv::Rect bd;
+
     StipDetector::DefineROI();
+    SingleBoundingBoxFromROI(_roi, bd);
+    MaskFromRect(_frame_current, bd, roi);
+
 
     switch (method)
     {
@@ -373,8 +413,9 @@ void StipDetector::detect(StipDetector::FeatureMethod method = STIP)
             }
             break;
         case ORB:
+
             _frame_current.convertTo(frame,CV_8UC1);
-            _roi.convertTo(roi,CV_8UC1);
+            roi.convertTo(roi,CV_8UC1);
 
             dec->detect(frame, _corners,roi);
             break;
