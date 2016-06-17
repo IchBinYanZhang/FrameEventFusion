@@ -189,7 +189,11 @@ void StereoVision::SetCamCalibration(std::vector<cv::Mat>& intrisicMat,
     for(int i = 0; i < _intrisic_mat.size(); i++){
         hconcat(_rotation_mat[i], _trans_vec[i], temp);
         _projection_mat.push_back(_intrisic_mat[i]*temp);
+
     }
+    _projection_mat_rec.push_back(P1);
+    _projection_mat_rec.push_back(P2);
+
 
 }
 
@@ -494,15 +498,15 @@ bool StereoVision::Tracking2D( const cv::Mat& f0, const cv::Mat& f1, cv::Rect& b
             mask_motion.convertTo(mask_motion,CV_32F, 1.0f/255);
 
             backproj = backproj.mul(mask_motion);
-            RotatedRect trackBox = CamShift(backproj, bd,
-                                    TermCriteria( TermCriteria::EPS | TermCriteria::COUNT, 5, 1 ));
-//            meanShift(backproj,bd, TermCriteria( TermCriteria::EPS | TermCriteria::COUNT, 5, 1 ));
+//            RotatedRect trackBox = CamShift(backproj, bd,
+//                                    TermCriteria( TermCriteria::EPS | TermCriteria::COUNT, 5, 1 ));
+            meanShift(backproj,bd, TermCriteria( TermCriteria::EPS | TermCriteria::COUNT, 5, 1 ));
 
             normalize(backproj, backproj, 0,1, NORM_MINMAX);
             imshow("backproj", backproj);
 
             ///update bounding box and template histgram
-            bd = trackBox.boundingRect();
+//            bd = trackBox.boundingRect();
             hist_generator.SetBoundingBox(bd);
             EpanechnikovKernel(f1, bd, 11.0, kernel);
 
@@ -781,11 +785,36 @@ void StereoVision::PointSetPerspectiveTransform(const std::vector<Point2f>& in, 
 }
 
 
-inline void StereoVision::UpdateIntrinsicByImageResize(cv::Mat& src, cv::Mat& dst, double fx, double fy)
+inline void StereoVision::UpdateGeometryByImageResize( float fx, float fy)
 /// image is resized by factor fx in x-direction and fy in y-direction
 {
     cv::Mat factor_mat = (Mat_<double>(3,3) << fx, 0.0, 0.0, 0.0, fy, 0.0, 0.0, 0.0, 1.0);
-    dst = factor_mat * src;
+    for(int i = 0; i < _intrisic_mat.size(); i++){
+        _intrisic_mat[i] = factor_mat*_intrisic_mat[i];
+        _projection_mat[i] = factor_mat*_projection_mat[i];
+
+    }
+
+
+    /// computings for image rectification transformations
+    _projection_mat_rec.clear();
+    cv::Mat R1, P1, R2, P2, Q;
+
+
+    cv::stereoRectify(_intrisic_mat[0],_dist_coeff[0],_intrisic_mat[1],_dist_coeff[1],
+                      cv::Size(_nx,_ny), _rotation_mat[1],_trans_vec[1],
+                      R1,R2,P1,P2,Q,CV_CALIB_ZERO_DISPARITY,1, cv::Size(_nx,_ny));
+
+
+    cv::initUndistortRectifyMap(_intrisic_mat[0], _dist_coeff[0], R1, P1, cv::Size(_nx,_ny),
+                                 CV_16SC2, _cam1map1, _cam1map2);
+    cv::initUndistortRectifyMap(_intrisic_mat[1], _dist_coeff[1], R2, P2, cv::Size(_nx,_ny),
+                                     CV_16SC2, _cam2map1, _cam2map2);
+
+    _projection_mat_rec.push_back(P1);
+    _projection_mat_rec.push_back(P2);
+
+
 }
 
 
@@ -795,12 +824,16 @@ void StereoVision::StereoShow(bool is_rectified)
     int num_frames =  this->_stream[0].get(CV_CAP_PROP_FRAME_COUNT);
 //    cv::namedWindow("stream1", cv::WINDOW_NORMAL);
 //    cv::namedWindow("stream2", cv::WINDOW_NORMAL);
-    cv::Mat frame1, frame1_rec, frame1_pre, frame1_birdview, frame1_s, frame1_tracking,frame1_birdview_tracking;
-    cv::Mat frame2, frame2_rec, frame2_pre, frame2_birdview, frame2_s, frame2_tracking, frame2_birdview_tracking;
+    cv::Mat frame1, frame1_rec, frame1_pre, frame1_birdview, frame1_s, frame1_tracking,frame1_tracking_est;
+    cv::Mat frame2, frame2_rec, frame2_pre, frame2_birdview, frame2_s, frame2_tracking, frame2_tracking_est;
     std::vector<cv::Point2f> trajectory1;
-    std::vector<cv::Point2f> trajectory1_bird;
+    std::vector<cv::Point2f> trajectory1_estimated;
     std::vector<cv::Point2f> trajectory2;
-    std::vector<cv::Point2f> trajectory2_bird;
+    std::vector<cv::Point2f> trajectory2_estimated;
+    std::vector<Mat> trajectory3D_homo;
+    std::vector<Mat> trajectory3D_euc;
+    Mat P0;
+
 
 
 
@@ -814,10 +847,10 @@ void StereoVision::StereoShow(bool is_rectified)
     /// for tracking
     cv::Rect bd1, bd2;
     cv::Mat hist1, hist2;
+    cv::Mat x_pre, x_cur; // 3D points
 
     double resize_factor_x = 0.5, resize_factor_y = 0.5;
-    UpdateIntrinsicByImageResize(_intrisic_mat[0], _intrisic_mat[0], resize_factor_x, resize_factor_y);
-    UpdateIntrinsicByImageResize(_intrisic_mat[1], _intrisic_mat[1], resize_factor_x, resize_factor_y);
+    UpdateGeometryByImageResize(resize_factor_x, resize_factor_y);
 
     if( is_rectified)
     {
@@ -863,9 +896,9 @@ void StereoVision::StereoShow(bool is_rectified)
     else
     {
         trajectory1.clear();
-        trajectory1_bird.clear();
+        trajectory1_estimated.clear();
         trajectory2.clear();
-        trajectory2_bird.clear();
+        trajectory2_estimated.clear();
 
 
         for(int i = 0; i < num_frames; i++)
@@ -930,22 +963,46 @@ void StereoVision::StereoShow(bool is_rectified)
 
                     if(bd1.height == 0.0 || bd1.width == 0.0 || bd2.height == 0.0 || bd2.width == 0.0)
                     {
+                        Mat x0;
+                        P0 = Mat::zeros(7,7,CV_32F);
                         cout << " -- detection" <<endl;
 //                        Tracking3D(frame1_pre, frame1_s, bd1, hist1, frame2_pre, frame2_s, bd2, hist2, TRACKINGBYDETECTION3, HSVLBP);
-                        Tracking2D( frame2_pre, frame2_s, bd2,hist2, TRACKINGBYDETECTION);
-                        Tracking2D( frame1_pre, frame1_s, bd1,hist1, TRACKINGBYDETECTION);
+                        if(Tracking2D( frame2_pre, frame2_s, bd2,hist2, TRACKINGBYDETECTION) && Tracking2D( frame1_pre, frame1_s, bd1,hist1, TRACKINGBYDETECTION)){
+                            Tracking3DInitialize( frame1_pre, frame1_s, bd1, frame2_pre, frame2_s, bd2,x0);
+                            trajectory3D_homo.push_back(x0);
+                            setIdentity(P0, Scalar::all(10));
+
+                        }
+
+
 
                     }
 
-
-
                     else
                     {
-                        Point pt(0,0);
-                        Tracking3DInitialize( frame1_pre, frame1_s, frame2_pre, frame2_s, pt);
-                        waitKey(0);
+
 
                         cout << " -- tracking" <<endl;
+                        float vx, vy, vz;
+                        Point2f A, B;
+                        vector<Mat>::iterator ptr =trajectory3D_homo.end()-1;
+                        Mat xt_1 = *(ptr);
+                        Mat xt_2;
+                        Mat xt;
+                        if(trajectory3D_homo.size()>1){
+                            xt_2 = *(ptr-1);
+                            vx = xt_1.at<float>(0)-xt_2.at<float>(0) ;
+                            vy = xt_1.at<float>(1)-xt_2.at<float>(1) ;
+                            vz = xt_1.at<float>(2)-xt_2.at<float>(2) ;
+                        }
+                        else{
+                            vx = 1.0f;
+                            vy = 1.0f;
+                            vz = 1.0f;
+
+                        }
+
+
                         namedWindow("stream1_tracking", CV_WINDOW_NORMAL);
                         namedWindow("stream2_tracking", CV_WINDOW_NORMAL);
                         moveWindow("stream1_tracking", 0,0);
@@ -957,18 +1014,32 @@ void StereoVision::StereoShow(bool is_rectified)
                         Tracking2D( frame2_pre, frame2_s, bd2,hist2, CAMSHIFT);
                         Tracking2D( frame1_pre, frame1_s, bd1,hist1, CAMSHIFT);
 
+                        Tracking3DKalman(bd1,bd2,xt_1, vx, vy, vz, xt, P0, A, B);
+
+                        trajectory3D_homo.push_back(xt);
+
+                        trajectory1_estimated.push_back(A);
+                        ShowTracking(frame1,bd1, trajectory1_estimated, frame1_tracking_est);
+
+                        trajectory2_estimated.push_back(B);
+                        ShowTracking(frame2,bd2, trajectory2_estimated, frame2_tracking_est);
+
+
                         trajectory1.push_back( Point2f((bd1.tl()+bd1.br())/2) );
                         ShowTracking(frame1,bd1, trajectory1, frame1_tracking);
 
                         trajectory2.push_back( Point2f((bd2.tl()+bd2.br())/2) );
                         ShowTracking(frame2,bd2, trajectory2, frame2_tracking);
 
+
                         cv::imshow("stream1_tracking", frame1_tracking);
                         cv::imshow("stream2_tracking", frame2_tracking);
+                        cv::imshow("stream1_tracking_est", frame1_tracking_est);
+                        cv::imshow("stream2_tracking_est", frame2_tracking_est);
                         cv::waitKey(5);
 
-
                     }
+
 
                 }
 
@@ -986,25 +1057,6 @@ void StereoVision::StereoShow(bool is_rectified)
 }
 
 
-inline void GetHog(const cv::Mat& in, cv::Rect& bd, cv::Mat&hist)
-{
-
-    cv::Mat img = in(bd);
-    cvtColor(img,img,COLOR_BGR2GRAY);
-    HOGDescriptor hog;
-    vector<float> ders;
-    vector<Point>locs;
-    hog.compute(img,ders,Size(32,32),Size(0,0),locs);
-
-    hist.create(ders.size(),1,CV_32FC1);
-
-    for(int i=0;i<ders.size();i++)
-    {
-      hist.at<float>(i,0)=ders.at(i);
-
-    }
-
-}
 
 
 
@@ -1080,13 +1132,6 @@ bool StereoVision::Tracking3D(const cv::Mat& f0_pre, const cv::Mat& f0_cur, cv::
 
 
 
-                }
-                else{
-                    if(method_feature==HOG){
-                        GetHog(f0_cur,bd0,hist0);
-                        GetHog(f1_cur,bd1,hist1);
-
-                    }
                 }
 
             }
@@ -1315,102 +1360,6 @@ bool StereoVision::Tracking3D(const cv::Mat& f0_pre, const cv::Mat& f0_cur, cv::
 
 
 
-
-
-
-
-
-      case KALMAN3D:
-        {
-//            /// find the bounding box centers in homogeneous coordinates
-//            Mat x0, x1;
-//            x0 = (Mat_<float>(3,1) << (bd0.br().x + bx0.tl().x)/2.0f , (bd0.br().y + bx0.tl().y)/2.0f, 1.0f);
-//            x1 = (Mat_<float>(3,1) << (bd1.br().x + bx1.tl().x)/2.0f , (bd1.br().y + bx1.tl().y)/2.0f, 1.0f);
-//
-//
-//            /// define the standard Kalman filter
-//            const int dim_state=7;
-//            const int dim_measure = 6;
-//            const int dim_control = 0;
-//            const float velocity =  10.0f;
-//            cv::KalmanFilter kf(dim_state, dim_measure, dim_control, CV_32F);
-//
-//            // process model
-//            kf.transitionMatrix = (Mat_<float>(dim_state, dim_state)<<
-//
-//                                   1,0,0,0,velocity,0,0,
-//                                   0,1,0,0,0,velocity,0,
-//                                   0,0,1,0,0,0,velocity,
-//                                   0,0,0,1,0,0,0,
-//                                   0,0,0,0,1,0,0,
-//                                   0,0,0,0,0,1,0,
-//                                   0,0,0,0,0,0,1
-//                                   );
-//            setIdentity(kf.processNoiseCov, Scalar::all(1e-5));
-//
-//
-//            // observation model
-//
-//            Mat R = (Mat_<float>(4,dim_state) <<
-//                               1,0,0,0,0,0,0,
-//                               0,1,0,0,0,0,0,
-//                               0,0,1,0,0,0,0,
-//                               0,0,0,1,0,0,0,
-//                            );
-//
-//            vconcat(_projection_mat[0]*R, _projection_mat[1]*R, kf.measurementMatrix);
-//            setIdentity(kf.measurementNoiseCov, Scalar::all(1e-1));
-//
-//
-//            // set the initial state
-//            kf.statePre
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//            inline void StereoVision::ProjectionMatrixFromCalibration(const cv::Mat& K, const cv::Mat& R, const cv::Mat& T,
-//                                                           cv::Mat& P)
-//            kf.measurementMatrix = (Mat_<float>(dim_state, dim_state)<<
-//
-//                                   1,0,0,0,velocity,0,0,
-//                                   0,1,0,0,0,velocity,0,
-//                                   0,0,1,0,0,0,velocity,
-//                                   0,0,0,1,0,0,0,
-//                                   0,0,0,0,1,0,0,
-//                                   0,0,0,0,0,1,0,
-//                                   0,0,0,0,0,0,1
-//                                   );
-//
-//
-//
-//
-//
-//
-//
-//
-//                                   )
-
-
-
-
-
-            found_box = true;
-            break;
-        }
-
-
-
-
-
-
-
-
-
         default:
         {
             cout << "other methods are not implemented." <<endl;
@@ -1425,7 +1374,132 @@ bool StereoVision::Tracking3D(const cv::Mat& f0_pre, const cv::Mat& f0_cur, cv::
 }
 
 
+void StereoVision::Tracking3DKalman(Rect& bd0, Rect& bd1, Mat& pt_in, float vx, float vy, float vz, Mat& pt_out, Mat& Pt, Point2f& post0, Point2f& post1)
+{
 
+
+    /// find the bounding box centers in homogeneous coordinates
+    Mat x0, x1, ot;
+    x0 = (Mat_<float>(3,1) << (bd0.br().x + bd0.tl().x)/2.0f , (bd0.br().y + bd0.tl().y)/2.0f, 1.0f);
+    x1 = (Mat_<float>(3,1) << (bd1.br().x + bd1.tl().x)/2.0f , (bd1.br().y + bd1.tl().y)/2.0f, 1.0f);
+
+    /// map to rectified image
+    Mat x0_rec, x1_rec;
+    x0_rec = (Mat_<double>(3,1) << _cam1map1.at<double>( (int)x0.at<float>(1),(int)x0.at<float>(0) ),
+                                   _cam1map2.at<double>( (int)x0.at<float>(1),(int)x0.at<float>(0) ),
+                                   1.0
+             );
+
+    x1_rec = (Mat_<double>(3,1) << _cam2map1.at<double>( (int)x1.at<float>(1),(int)x1.at<float>(0) ),
+                                   _cam2map2.at<double>( (int)x1.at<float>(1),(int)x1.at<float>(0) ),
+                                   1.0
+             );
+
+
+    x0_rec.convertTo(x0_rec, CV_32F);
+    x1_rec.convertTo(x1_rec, CV_32F);
+
+
+    vconcat(x0_rec,x1_rec, ot);
+
+    /// define the standard Kalman filter
+    const int dim_state=7;
+    const int dim_measure = 6;
+    const int dim_control = 0;
+    cv::KalmanFilter kf(dim_state, dim_measure, dim_control, CV_32F);
+
+    // process model
+    kf.transitionMatrix = (Mat_<float>(dim_state, dim_state)<<
+
+                           1,0,0,0,1,0,0,
+                           0,1,0,0,0,1,0,
+                           0,0,1,0,0,0,1,
+                           0,0,0,1,0,0,0,
+                           0,0,0,0,1,0,0,
+                           0,0,0,0,0,1,0,
+                           0,0,0,0,0,0,1
+                           );
+
+    setIdentity(kf.processNoiseCov, Scalar::all(1));
+//    kf.processNoiseCov.at<float>(0)= 10.0f;
+//    kf.processNoiseCov.at<float>(8)= 10.0f;
+    kf.processNoiseCov.at<float>(24)= 1.0f;
+
+
+
+
+
+
+    // observation model
+
+    Mat R = (Mat_<float>(4,dim_state) <<
+                       1,0,0,0,0,0,0,
+                       0,1,0,0,0,0,0,
+                       0,0,1,0,0,0,0,
+                       0,0,0,1,0,0,0
+                    );
+
+    Mat P0, P1;
+    _projection_mat_rec[0].convertTo(P0, CV_32F);
+    _projection_mat_rec[1].convertTo(P1, CV_32F);
+
+
+
+    vconcat(P0*R/pt_in.at<float>(2), P1*R/pt_in.at<float>(2), kf.measurementMatrix);
+    setIdentity(kf.measurementNoiseCov, Scalar::all(20));
+//    kf.measurementNoiseCov.at<float>(14)= 10;
+//    kf.measurementNoiseCov.at<float>(35)= 10;
+
+
+
+    // set the initial state
+    kf.statePost.at<float>(0) = pt_in.at<float>(0);
+    kf.statePost.at<float>(1) = pt_in.at<float>(1);
+    kf.statePost.at<float>(2) = pt_in.at<float>(2);
+    kf.statePost.at<float>(3) = pt_in.at<float>(3);
+    kf.statePost.at<float>(4) = vx;
+    kf.statePost.at<float>(5) = vy;
+    kf.statePost.at<float>(6) = vz;
+
+    kf.errorCovPost = Pt;
+
+
+    cout << "===observation:==="<<endl;
+    cout << ot <<endl;
+
+
+
+    cout <<"===previous state==="<<endl;
+    cout << kf.statePost<<endl;
+    /// perform predicting and updating
+    Mat predicted = kf.predict();
+
+    Mat estimated = kf.correct(ot);
+
+    pt_out = estimated.rowRange(Range(0,4));
+    Pt = kf.errorCovPost;
+
+    cout <<"===prediction" << endl;
+    cout <<kf.statePre<<endl;
+    cout <<"===update===" << endl;
+    cout << estimated<<endl;
+//        cout << "estimated covariance"<<kf.errorCovPost<<endl;
+
+
+
+    /// project estimated to 2D image planes
+    Mat pp0 = P0*pt_out;
+    post0 = Point2f(pp0.at<float>(0)/pp0.at<float>(2),pp0.at<float>(1)/pp0.at<float>(2));
+    Mat pp1 = P1*pt_out;
+    post1 = Point2f(pp1.at<float>(0)/pp1.at<float>(2),pp1.at<float>(1)/pp1.at<float>(2));
+
+
+    cout <<"== 3D-2D projection on image 1:"<<post0<<endl;
+//
+    cout <<"== 3D-2D projection on image 2:"<< post1 <<endl;
+//    waitKey(0);
+
+}
 
 
 
@@ -1441,7 +1515,9 @@ inline void StereoVision::ImagePreprocessing(const cv::Mat& f, cv::Mat& out)
 }
 
 
-void StereoVision::Tracking3DInitialize( cv::Mat& f1_pre, cv::Mat& f1_cur, cv::Mat& f2_pre, cv::Mat& f2_cur, cv::Mat& center)
+void StereoVision::Tracking3DInitialize( cv::Mat& f1_pre, cv::Mat& f1_cur, cv::Rect& bd1,
+                                         cv::Mat& f2_pre, cv::Mat& f2_cur, cv::Rect& bd2,
+                                         cv::Mat& center)
 /// this function finds one 3D point (x,y,z,1) in homogeneous space
 {
 
@@ -1454,12 +1530,14 @@ void StereoVision::Tracking3DInitialize( cv::Mat& f1_pre, cv::Mat& f1_cur, cv::M
     vector<cv::KeyPoint> kpt2;
     cv::Mat roi1, roi2;
 
-    detector1.SetMethodROI(StipDetector::TemporalThreshold);
+    detector1.SetMethodROI(StipDetector::Manual);
+    detector1.SetBoundingBox(bd1);
     detector1.detect(StipDetector::FeatureMethod::ORB);
     detector1.GetKeyPoints(kpt1);
 
 
-    detector2.SetMethodROI(StipDetector::TemporalThreshold);
+    detector2.SetMethodROI(StipDetector::Manual);
+    detector2.SetBoundingBox(bd2);
     detector2.detect(StipDetector::FeatureMethod::ORB);
     detector2.GetKeyPoints(kpt2);
 

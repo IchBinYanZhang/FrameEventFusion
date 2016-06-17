@@ -88,6 +88,14 @@ void StipDetector::Gradient (const Mat& src, Mat& gradx, Mat& grady, bool use_so
 
 
 
+inline void MaskFromRect(const cv::Mat& img, cv::Rect& bd, cv::Mat& out)
+{
+    out = cv::Mat::zeros(img.size(), img.depth());
+    vector<Point> bd_vertices {Point(bd.x, bd.y), Point(bd.x+bd.width, bd.y),Point(bd.x+bd.width, bd.y+bd.height),Point(bd.x, bd.y+bd.height)};
+    vector<Point> bd_poly;
+    approxPolyDP(bd_vertices, bd_poly, 1.0, true);
+    fillConvexPoly(out, &bd_poly[0], (int)bd_poly.size(), 255, 8, 0);
+}
 
 void StipDetector::MotionTensorScore (const cv::Mat& frame_current, const cv::Mat& frame_previous, cv::Mat& score, float rho)
 {
@@ -305,6 +313,9 @@ void StipDetector::DefineROI()
         convertScaleAbs(_roi,_roi,255/(max_val-min_val));
         cv::threshold(_roi, _roi,50,255,cv::THRESH_BINARY);
         _roi.convertTo(_roi,CV_32F);
+
+    case Manual:
+        MaskFromRect(_frame_current, _bounding_box, _roi);
     default:
         break;
 
@@ -354,14 +365,20 @@ inline void SingleBoundingBoxFromROI(cv::Mat& roi, cv::Rect& bd)
 }
 
 
-inline void MaskFromRect(const cv::Mat& img, cv::Rect& bd, cv::Mat& out)
+
+
+
+
+void StipDetector::SetBoundingBox(cv::Rect& bbox)
 {
-    out = cv::Mat::zeros(img.size(), img.depth());
-    vector<Point> bd_vertices {Point(bd.x, bd.y), Point(bd.x+bd.width, bd.y),Point(bd.x+bd.width, bd.y+bd.height),Point(bd.x, bd.y+bd.height)};
-    vector<Point> bd_poly;
-    approxPolyDP(bd_vertices, bd_poly, 1.0, true);
-    fillConvexPoly(out, &bd_poly[0], (int)bd_poly.size(), 255, 8, 0);
+
+    _bounding_box = bbox;
+
 }
+
+
+
+
 
 
 void StipDetector::detect(StipDetector::FeatureMethod method = STIP)

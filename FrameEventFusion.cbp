@@ -55,6 +55,9 @@
 		<Compiler>
 			<Add option="-Wall" />
 		</Compiler>
+		<Unit filename="FrameEventFusion.depend" />
+		<Unit filename="FrameEventFusion.layout" />
+		<Unit filename="bin/Debug/FrameEventFusion" />
 		<Unit filename="include/EventStream.h" />
 		<Unit filename="include/FrameEventFuser.h" />
 		<Unit filename="include/FrameStream.h" />
@@ -63,6 +66,14 @@
 		<Unit filename="include/StereoVision.h" />
 		<Unit filename="include/StipDetector.h" />
 		<Unit filename="main.cpp" />
+		<Unit filename="obj/Debug/main.o" />
+		<Unit filename="obj/Debug/src/EventStream.o" />
+		<Unit filename="obj/Debug/src/FrameEventFuser.o" />
+		<Unit filename="obj/Debug/src/FrameStream.o" />
+		<Unit filename="obj/Debug/src/LocalBinaryPattern.o" />
+		<Unit filename="obj/Debug/src/MyHistogram.o" />
+		<Unit filename="obj/Debug/src/StereoVision.o" />
+		<Unit filename="obj/Debug/src/StipDetector.o" />
 		<Unit filename="src/EventStream.cpp" />
 		<Unit filename="src/FrameEventFuser.cpp" />
 		<Unit filename="src/FrameStream.cpp" />

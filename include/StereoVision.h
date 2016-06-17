@@ -35,12 +35,16 @@ class StereoVision
                               const cv::Mat& f1_pre, const cv::Mat& f1_cur, cv::Rect& bd1, cv::Mat& hist1,
                               Tracking3DMethod method, FeatureMethod method_feature);
 
+        void Tracking3DKalman(Rect& boundingbox0, Rect& boundingbox1, Mat& pt_in, float vx, float vy, float vz, Mat& pt_out, Mat&, Point2f& p1, Point2f& p2);
+
         void DepthShow();
         void StereoShow(bool is_rectified=false);
         void IsSynchronizedTwoStreams();
         void BlockMatching(cv::Mat& frame1, cv::Mat& frame2, cv::Mat& frame1_roi,cv::Mat& frame2_roi, cv::Mat& out);
         void BlockMatching2(cv::Mat& frame1, cv::Mat& frame2, cv::Mat& frame1_roi, cv::Mat& out);
-        void Tracking3DInitialize(cv::Mat& f1_pre, cv::Mat& f1_cur, cv::Mat& f2_pre, cv::Mat& f2_cur, cv::Mat& center);
+        void Tracking3DInitialize( cv::Mat& f1_pre, cv::Mat& f1_cur, cv::Rect& bd1,
+                                         cv::Mat& f2_pre, cv::Mat& f2_cur, cv::Rect& bd2,
+                                         cv::Mat& center);
         void HomographyToGround(cv::Mat& img_cb, bool);
         bool Tracking2D(const cv::Mat& f1, const cv::Mat& f0, cv::Rect& bd, cv::Mat& hist, Tracking2DMethod method);
         virtual ~StereoVision();
@@ -65,7 +69,7 @@ class StereoVision
                                                            const cv::Mat& K_prime, const cv::Mat& R_prime, const cv::Mat& T_prime,
                                                            cv::Mat& F);
 
-        inline void UpdateIntrinsicByImageResize(cv::Mat& src, cv::Mat& dst, double fx, double fy);
+        inline void UpdateGeometryByImageResize(float fx, float fy);
 
     private:
         /// frame streams and videos
@@ -81,6 +85,8 @@ class StereoVision
         std::vector<cv::Mat> _rotation_mat;
         std::vector<cv::Mat> _trans_vec;
         std::vector<cv::Mat> _projection_mat;
+        std::vector<cv::Mat> _projection_mat_rec;
+
         cv::Mat _H; // for the specific cam of the corresponding checkerboard image
         int _nx,_ny;
 

@@ -17,7 +17,7 @@ using namespace cv;
 class StipDetector
 {
     public:
-        enum RoiMethod {TemporalThreshold, GM2, SimpleFlow, TVL1Flow};
+        enum RoiMethod {TemporalThreshold, GM2, SimpleFlow, TVL1Flow, Manual};
         enum ScoreMethod {Harris, MinEigen};
         enum FeatureMethod{STIP, ORB};
 
@@ -30,6 +30,7 @@ class StipDetector
         void SetLevelNum( int n_level);
         void SetMethodScore(StipDetector::ScoreMethod method);
         void SetMethodROI(StipDetector::RoiMethod method);
+        void SetBoundingBox(cv::Rect& bbox);
         void SetFrames(const cv::Mat& f1, const cv::Mat& f2);
 
         void detect(StipDetector::FeatureMethod method);
@@ -62,6 +63,7 @@ class StipDetector
 
         Mat _score, _score_dilate, _score_peak;
         Mat _roi;
+        Rect _bounding_box;
         cv::Ptr<cv::BackgroundSubtractorMOG2> _pMOG;
 
 
