@@ -115,41 +115,41 @@ void StereoVision::SetFrameStream(FrameStream& s1, FrameStream& s2)
 }
 
 
-void StereoVision::HomographyToGround(cv::Mat& img_cb, bool img_show)
-/// find the homography, given the image of a checkerboard on the ground, with 5 corners per row and 7 corners per column on the pattern
-{
-    int nx = 5;
-    int ny = 7;
-    cv::Size pattern_size(nx,ny);
-    std::vector<cv::Point2f> corners;
-    std::vector<cv::Point2f> corners_w;
-    bool patternfound = cv::findChessboardCorners(img_cb, pattern_size, corners,
-        CALIB_CB_ADAPTIVE_THRESH + CALIB_CB_NORMALIZE_IMAGE
-        + CALIB_CB_FAST_CHECK);
-
-    for(auto i = corners.begin(); i < corners.end(); i++)
-    {
-        double x;
-        double y;
-        int N = std::distance(corners.begin(), i);
-        x = N%nx;
-        y = (N-x)/nx;
-        corners_w.push_back(cv::Point2f(5*x+img_cb.cols/4,5*y+3*img_cb.rows/4));
-
-    }
-
-    _H = cv::findHomography(corners,corners_w);
-
-
-    if(img_show)
-    {
-
-        cv::drawChessboardCorners(img_cb, pattern_size, Mat(corners), patternfound);
-        cv::namedWindow("corners",WINDOW_NORMAL);
-        imshow("corners", img_cb);
-        cv::waitKey(5);
-    }
-}
+//void StereoVision::HomographyToGround(cv::Mat& img_cb, bool img_show)
+///// find the homography, given the image of a checkerboard on the ground, with 5 corners per row and 7 corners per column on the pattern
+//{
+//    int nx = 5;
+//    int ny = 7;
+//    cv::Size pattern_size(nx,ny);
+//    std::vector<cv::Point2f> corners;
+//    std::vector<cv::Point2f> corners_w;
+//    bool patternfound = cv::findChessboardCorners(img_cb, pattern_size, corners,
+//        CALIB_CB_ADAPTIVE_THRESH + CALIB_CB_NORMALIZE_IMAGE
+//        + CALIB_CB_FAST_CHECK);
+//
+//    for(auto i = corners.begin(); i < corners.end(); i++)
+//    {
+//        double x;
+//        double y;
+//        int N = std::distance(corners.begin(), i);
+//        x = N%nx;
+//        y = (N-x)/nx;
+//        corners_w.push_back(cv::Point2f(5*x+img_cb.cols/4,5*y+3*img_cb.rows/4));
+//
+//    }
+//
+//    _H = cv::findHomography(corners,corners_w);
+//
+//
+//    if(img_show)
+//    {
+//
+//        cv::drawChessboardCorners(img_cb, pattern_size, Mat(corners), patternfound);
+//        cv::namedWindow("corners",WINDOW_NORMAL);
+//        imshow("corners", img_cb);
+//        cv::waitKey(5);
+//    }
+//}
 
 
 
@@ -194,8 +194,28 @@ void StereoVision::SetCamCalibration(std::vector<cv::Mat>& intrisicMat,
     _projection_mat_rec.push_back(P1);
     _projection_mat_rec.push_back(P2);
 
+}
 
 
+
+
+void StereoVision::SetGroundPlane(cv::Mat& plane)
+{
+    _ground_plane = plane.clone();
+}
+
+
+void StereoVision::ProjectWorldPointsToGround(std::vector<cv::Mat>& src,std::vector<cv::Point2f>& dst)
+/// input src is in homogeneous coordinate
+{
+    int N = src.size();
+    for(int i = 0; i < N; i++){
+        float x = _ground_plane.at<double>(0,0) * src[i].at<float>(0)/src[i].at<float>(3) + _ground_plane.at<double>(1,0) * src[i].at<float>(1)/src[i].at<float>(3)
+                + _ground_plane.at<double>(2,0) * src[i].at<float>(2)/src[i].at<float>(3);
+        float y = _ground_plane.at<double>(0,1) * src[i].at<float>(0)/src[i].at<float>(3) + _ground_plane.at<double>(1,1) * src[i].at<float>(1)/src[i].at<float>(3)
+                + _ground_plane.at<double>(2,1) * src[i].at<float>(2)/src[i].at<float>(3);
+        dst.push_back(Point2f(x,y));
+    }
 }
 
 
@@ -239,8 +259,6 @@ inline void StereoVision::MultiBoundingBoxFromROI(cv::Mat& roi, std::vector<cv::
         approxPolyDP( Mat(contours[i]), contours_poly[i], 3, true );
         boundRect[i] = boundingRect( Mat(contours_poly[i]) );
     }
-
-
 
 }
 
@@ -303,7 +321,18 @@ inline void StereoVision::ShowTracking(const cv::Mat& f_current, cv::Rect& bd, s
 
 }
 
+inline void StereoVision::ShowTracking(std::vector<cv::Point2f>& trajectory, cv::Mat& out)
+{
 
+        out = Mat::zeros(_ny, _nx, CV_32F);
+//        cv::RNG rng(12345);
+        cv::Scalar color = Scalar( 36, 150, 223 );
+        for(int i = 0; i < trajectory.size()-1; i++){
+            cv::line(out, trajectory[i], trajectory[i+1], color,2, CV_AA);
+        }
+
+
+}
 
 inline void StereoVision::ShowBoundingBox(const cv::Mat& drawing, std::vector<cv::Rect>& bd)
 {
@@ -320,10 +349,6 @@ inline void StereoVision::ShowBoundingBox(const cv::Mat& drawing, std::vector<cv
         namedWindow( "Contours", CV_WINDOW_AUTOSIZE );
         imshow( "Contours", drawing );
 }
-
-
-
-
 
 
 
@@ -352,12 +377,6 @@ inline void StereoVision::FundamentalMatrixFromCalibration(const cv::Mat& K, con
 
 
 
-
-
-
-
-
-
 inline void StereoVision::HistDisplay(const cv::Mat& hist, const int nbins, const float* histRange )
 {
     int hist_h = 512;
@@ -381,6 +400,9 @@ inline void StereoVision::HistDisplay(const cv::Mat& hist, const int nbins, cons
 
 
 
+
+
+
 inline void StereoVision::MaskFromRect(const cv::Mat& img, cv::Rect& bd, cv::Mat& out)
 {
     out = cv::Mat::zeros(img.size(), img.depth());
@@ -389,6 +411,11 @@ inline void StereoVision::MaskFromRect(const cv::Mat& img, cv::Rect& bd, cv::Mat
     approxPolyDP(bd_vertices, bd_poly, 1.0, true);
     fillConvexPoly(out, &bd_poly[0], (int)bd_poly.size(), 255, 8, 0);
 }
+
+
+
+
+
 
 
 inline void EpanechnikovKernel(const Mat& image, Rect& bbox, float c, Mat& kernel)
@@ -499,15 +526,15 @@ bool StereoVision::Tracking2D( const cv::Mat& f0, const cv::Mat& f1, cv::Rect& b
             mask_motion.convertTo(mask_motion,CV_32F, 1.0f/255);
 
             backproj = backproj.mul(mask_motion);
-            RotatedRect trackBox = CamShift(backproj, bd,
-                                    TermCriteria( TermCriteria::EPS | TermCriteria::COUNT, 5, 1 ));
-//            meanShift(backproj,bd, TermCriteria( TermCriteria::EPS | TermCriteria::COUNT, 5, 1 ));
+//            RotatedRect trackBox = CamShift(backproj, bd,
+//                                    TermCriteria( TermCriteria::EPS | TermCriteria::COUNT, 5, 1 ));
+            meanShift(backproj,bd, TermCriteria( TermCriteria::EPS | TermCriteria::COUNT, 5, 1 ));
 
             normalize(backproj, backproj, 0,1, NORM_MINMAX);
             imshow("backproj", backproj);
 
             ///update bounding box and template histgram
-            bd = trackBox.boundingRect();
+//            bd = trackBox.boundingRect();
             hist_generator.SetBoundingBox(bd);
             EpanechnikovKernel(f1, bd, 11.0, kernel);
 
@@ -823,7 +850,9 @@ inline void StereoVision::UpdateGeometryByImageResize( float fx, float fy)
 }
 
 
-void StereoVision::StereoShow(bool is_rectified)
+
+
+void StereoVision::StereoShow(bool is_rectified, const string& filename_traj)
 {
     std::cout << " - Frame Stream Display." <<std::endl;
     int num_frames =  this->_stream[0].get(CV_CAP_PROP_FRAME_COUNT);
@@ -837,10 +866,11 @@ void StereoVision::StereoShow(bool is_rectified)
     std::vector<cv::Point2f> trajectory2_estimated;
     std::vector<Mat> trajectory3D_homo;
     std::vector<Mat> trajectory3D_euc;
+    std::vector<Point2f> trajectory_bird;
     Mat P0;
+    Mat x0;
 
-
-
+    std::fstream traj_3Dhomo;
 
     /// params for rectification
     cv::Mat R1, R2, P1, P2, Q;
@@ -890,8 +920,6 @@ void StereoVision::StereoShow(bool is_rectified)
             cv::remap(frame1, frame1_rec, cam1map1, cam1map2, cv::INTER_LINEAR);
             cv::remap(frame2, frame2_rec, cam2map1, cam2map2, cv::INTER_LINEAR);
 
-
-
             cv::imshow("stream1",frame1_rec);
             cv::imshow("stream2",frame2_rec);
             cv::waitKey(30);
@@ -905,14 +933,13 @@ void StereoVision::StereoShow(bool is_rectified)
         trajectory2.clear();
         trajectory2_estimated.clear();
 
-
         for(int i = 0; i < num_frames; i++)
         {
 
             this->_stream[0].read(frame1);
             this->_stream[1].read(frame2);
 
-            if(frame2.empty())
+            if(frame2.empty() | frame1.empty())
             {
                 cout<< "----------Display Ends--------------"<<endl;
             }
@@ -965,13 +992,13 @@ void StereoVision::StereoShow(bool is_rectified)
                 ImagePreprocessing(frame1, frame1_s); // only gaussian blur
                 ImagePreprocessing(frame2, frame2_s); // only gaussian blur
 
-                if(i>50)
+                if(i>100)
                 {
 
 
                     if(bd1.height == 0.0 || bd1.width == 0.0 || bd2.height == 0.0 || bd2.width == 0.0)
                     {
-                        Mat x0;
+
                         P0 = Mat::zeros(7,7,CV_32F);
                         cout << " -- detection" <<endl;
 //                        Tracking3D(frame1_pre, frame1_s, bd1, hist1, frame2_pre, frame2_s, bd2, hist2, TRACKINGBYDETECTION3, HSVLBP);
@@ -983,12 +1010,10 @@ void StereoVision::StereoShow(bool is_rectified)
                         }
 
 
-
                     }
 
                     else
                     {
-
 
                         cout << " -- tracking" <<endl;
                         float vx, vy, vz;
@@ -1004,17 +1029,17 @@ void StereoVision::StereoShow(bool is_rectified)
                             vz = xt_1.at<float>(2)-xt_2.at<float>(2) ;
                         }
                         else{
-                            vx = 1.0f;
-                            vy = 1.0f;
-                            vz = 1.0f;
+                            vx = 0.0f;
+                            vy = 0.0f;
+                            vz = 0.0f;
 
                         }
 
 
-                        namedWindow("stream1_tracking", CV_WINDOW_NORMAL);
-                        namedWindow("stream2_tracking", CV_WINDOW_NORMAL);
-                        moveWindow("stream1_tracking", 0,0);
-                        moveWindow("stream2_tracking", 0,700);
+//                        namedWindow("stream1_tracking", CV_WINDOW_NORMAL);
+//                        namedWindow("stream2_tracking", CV_WINDOW_NORMAL);
+//                        moveWindow("stream1_tracking", 0,0);
+//                        moveWindow("stream2_tracking", 0,700);
 
 
 
@@ -1025,26 +1050,42 @@ void StereoVision::StereoShow(bool is_rectified)
                         Tracking3DKalman(bd1,bd2,xt_1, vx, vy, vz, xt, P0, A, B);
 
                         trajectory3D_homo.push_back(xt);
+                        traj_3Dhomo.open(filename_traj.c_str(), std::fstream::out | std::fstream::app);
+                        traj_3Dhomo << xt.at<float>(0)<<"\t"<<xt.at<float>(1)<<"\t"<<xt.at<float>(2)<<"\t"<<xt.at<float>(3)<<"\n";
+                        traj_3Dhomo.close();
+//                        // project xt to the ground plane
+//                        float x = _ground_plane.at<double>(0,0) * (xt.at<float>(0)/xt.at<float>(3)-x0.at<float>(0)/x0.at<float>(3) )
+//                                + _ground_plane.at<double>(1,0) * (xt.at<float>(1)/xt.at<float>(3)-x0.at<float>(1)/x0.at<float>(3) )
+//                                + _ground_plane.at<double>(2,0) * (xt.at<float>(2)/xt.at<float>(3)-x0.at<float>(2)/x0.at<float>(3) );
+//                        float y = _ground_plane.at<double>(0,1) * (xt.at<float>(0)/xt.at<float>(3)-x0.at<float>(0)/x0.at<float>(3) )
+//                                + _ground_plane.at<double>(1,1) * (xt.at<float>(1)/xt.at<float>(3)-x0.at<float>(1)/x0.at<float>(3) )
+//                                + _ground_plane.at<double>(2,1) * (xt.at<float>(2)/xt.at<float>(3)-x0.at<float>(2)/x0.at<float>(3) );
+//
+//                        trajectory_bird.push_back(Point2f(x,y));
+//                        ShowTracking(trajectory_bird, frame1_birdview);
+//                        cout << Point2f(x,y) <<endl;
+
 
                         trajectory1_estimated.push_back(A);
-                        ShowTracking(frame1,bd1, trajectory1_estimated, frame1_tracking_est);
+//                        ShowTracking(frame1,bd1, trajectory1_estimated, frame1_tracking_est);
 
                         trajectory2_estimated.push_back(B);
-                        ShowTracking(frame2,bd2, trajectory2_estimated, frame2_tracking_est);
+//                        ShowTracking(frame2,bd2, trajectory2_estimated, frame2_tracking_est);
 
 
                         trajectory1.push_back( Point2f((bd1.tl()+bd1.br())/2) );
-                        ShowTracking(frame1,bd1, trajectory1, frame1_tracking);
+//                        ShowTracking(frame1,bd1, trajectory1, frame1_tracking);
 
                         trajectory2.push_back( Point2f((bd2.tl()+bd2.br())/2) );
-                        ShowTracking(frame2,bd2, trajectory2, frame2_tracking);
+//                        ShowTracking(frame2,bd2, trajectory2, frame2_tracking);
 
 
-                        cv::imshow("stream1_tracking", frame1_tracking);
-                        cv::imshow("stream2_tracking", frame2_tracking);
-                        cv::imshow("stream1_tracking_est", frame1_tracking_est);
-                        cv::imshow("stream2_tracking_est", frame2_tracking_est);
-                        cv::waitKey(5);
+//                        cv::imshow("stream1_tracking", frame1_tracking);
+//                        cv::imshow("stream2_tracking", frame2_tracking);
+//                        cv::imshow("stream1_tracking_est", frame1_tracking_est);
+//                        cv::imshow("stream2_tracking_est", frame2_tracking_est);
+////                        cv::imshow("bird_view", frame1_birdview);
+//                        cv::waitKey(5);
 
                     }
 
@@ -1164,12 +1205,6 @@ bool StereoVision::Tracking3D(const cv::Mat& f0_pre, const cv::Mat& f0_cur, cv::
             cv::moveWindow("epipolar1", posx+700, posy+700);
             cv::moveWindow("afterwards0", posx+0, posy+1400);
             cv::moveWindow("afterwards1", posx+700, posy+1400);
-
-
-
-
-
-
 
 
             /// extract motion
@@ -1392,6 +1427,7 @@ void StereoVision::Tracking3DKalman(Rect& bd0, Rect& bd1, Mat& pt_in, float vx, 
     const int dim_measure = 6;
     const int dim_control = 0;
     cv::KalmanFilter kf(dim_state, dim_measure, dim_control, CV_32F);
+    const float alpha = 0.0;
 
     // process model
     kf.transitionMatrix = (Mat_<float>(dim_state, dim_state)<<
@@ -1601,11 +1637,11 @@ void StereoVision::Tracking3DInitialize( cv::Mat& f1_pre, cv::Mat& f1_cur, cv::R
     matches_tmp.clear();
 
     /// visualize the matching
-    cv::Mat display_match;
-    drawMatches( f1_cur, kpt1, f2_cur, kpt2, matches, display_match );
-    namedWindow("matches", CV_WINDOW_NORMAL);
-    imshow("matches", display_match);
-    waitKey(0);
+//    cv::Mat display_match;
+//    drawMatches( f1_cur, kpt1, f2_cur, kpt2, matches, display_match );
+//    namedWindow("matches", CV_WINDOW_NORMAL);
+//    imshow("matches", display_match);
+//    waitKey(0);
 
     /// triangulate points
 

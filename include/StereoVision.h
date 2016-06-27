@@ -24,6 +24,7 @@ class StereoVision
         void SetFrameStream (FrameStream& s1, FrameStream& s2);
         void SetCamCalibration(std::vector<cv::Mat>& intrisicMat, std::vector<cv::Mat>& distCoeff,
                                std::vector<cv::Mat>& rotationMat, std::vector<cv::Mat>& transVec );
+        void SetGroundPlane(cv::Mat& plane);
 
         void ImageRectification(cv::Mat& frame1, cv::Mat& frame2, cv::Mat& out1,
                                       cv::Mat& out2);
@@ -38,7 +39,7 @@ class StereoVision
         void Tracking3DKalman(Rect& boundingbox0, Rect& boundingbox1, Mat& pt_in, float vx, float vy, float vz, Mat& pt_out, Mat&, Point2f& p1, Point2f& p2);
 
         void DepthShow();
-        void StereoShow(bool is_rectified=false);
+        void StereoShow(bool is_rectified, const std::string& filename_traj);
         void IsSynchronizedTwoStreams();
         void BlockMatching(cv::Mat& frame1, cv::Mat& frame2, cv::Mat& frame1_roi,cv::Mat& frame2_roi, cv::Mat& out);
         void BlockMatching2(cv::Mat& frame1, cv::Mat& frame2, cv::Mat& frame1_roi, cv::Mat& out);
@@ -46,6 +47,7 @@ class StereoVision
                                          cv::Mat& f2_pre, cv::Mat& f2_cur, cv::Rect& bd2,
                                          cv::Mat& center);
         void HomographyToGround(cv::Mat& img_cb, bool);
+        void ProjectWorldPointsToGround(std::vector<cv::Mat>& src,std::vector<cv::Point2f>& dst);
         bool Tracking2D(const cv::Mat& f1, const cv::Mat& f0, cv::Rect& bd, cv::Mat& hist, Tracking2DMethod method);
         virtual ~StereoVision();
 
@@ -60,6 +62,7 @@ class StereoVision
         inline void ShowBoundingBox(const cv::Mat&, cv::Rect&);
         inline void ShowBoundingBox(const cv::Mat& drawing, std::vector<cv::Rect>& bd);
         inline void ShowTracking(const cv::Mat& f_current, cv::Rect& bd, std::vector<cv::Point2f>& trajectory, cv::Mat& out);
+        inline void ShowTracking(std::vector<cv::Point2f>& trajectory, cv::Mat& out);
         inline void ImagePreprocessing(const cv::Mat& f, cv::Mat& out);
         void CLBP( Mat& src, Mat& dst, int radius, int neighbors);
         inline void HistDisplay(const cv::Mat& hist, const int nbins, const float* histRange );
@@ -86,6 +89,7 @@ class StereoVision
         std::vector<cv::Mat> _trans_vec;
         std::vector<cv::Mat> _projection_mat;
         std::vector<cv::Mat> _projection_mat_rec;
+        cv::Mat _ground_plane;
 
         cv::Mat _H; // for the specific cam of the corresponding checkerboard image
         int _nx,_ny;
