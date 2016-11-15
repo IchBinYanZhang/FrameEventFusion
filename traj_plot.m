@@ -10,6 +10,7 @@ clear;clc;
 
 % find the ground plane in 3D
 % [n, V, P] = ComputePlane(I_right, I_left, stereoParams);
+%%% geometry: cam-left and cam-right in experiment2A
 V = [0.93603 0.26413; 0.10476 0.42176; -0.33597 0.86738];
 
 %% read the trajectory file and map to ground
