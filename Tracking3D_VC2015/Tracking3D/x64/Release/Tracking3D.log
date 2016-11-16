@@ -1,18 +1,25 @@
-﻿  EventStream.cpp
+﻿C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\V140\Microsoft.CppBuild.targets(392,5): warning MSB8028: The intermediate directory (x64\Release\) contains files shared from another project (Tracking3D.vcxproj).  This can lead to incorrect clean and rebuild behavior.
+  StereoVision.cpp
 E:\SenseEmotion\FrameEventFusion\external\opencv-3.1.0\build\include\opencv2/core/mat.hpp(1965): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
 E:\SenseEmotion\FrameEventFusion\external\opencv-3.1.0\build\include\opencv2/core/persistence.hpp : warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
 E:\SenseEmotion\FrameEventFusion\external\opencv-3.1.0\build\include\opencv2/core/utility.hpp : warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
-EventStream.cpp(40): warning C4305: “参数”: 从“int”到“char”截断
-EventStream.cpp(40): warning C4309: “参数”: 截断常量值
-EventStream.cpp(45): warning C4244: “=”: 从“std::streamoff”转换到“long”，可能丢失数据
-EventStream.cpp(56): warning C4244: “初始化”: 从“double”转换到“int”，可能丢失数据
-EventStream.cpp(37): warning C4101: “data_start_pos”: 未引用的局部变量
-EventStream.cpp(113): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
-EventStream.cpp(114): warning C4244: “初始化”: 从“double”转换到“int”，可能丢失数据
-EventStream.cpp(138): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
-EventStream.cpp(153): warning C4244: “初始化”: 从“double”转换到“int”，可能丢失数据
+E:\SenseEmotion\FrameEventFusion\external\opencv-3.1.0\build\include\opencv2/core/utility.hpp : warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+StereoVision.cpp(211): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
+StereoVision.cpp(214): warning C4244: “初始化”: 从“double”转换到“float”，可能丢失数据
+StereoVision.cpp(216): warning C4244: “初始化”: 从“double”转换到“float”，可能丢失数据
+StereoVision.cpp(225): warning C4244: “初始化”: 从“double”转换到“uint16_t”，可能丢失数据
+StereoVision.cpp(226): warning C4244: “初始化”: 从“double”转换到“uint16_t”，可能丢失数据
+StereoVision.cpp(674): warning C4244: “初始化”: 从“__int64”转换到“int”，可能丢失数据
+StereoVision.cpp(780): warning C4244: “初始化”: 从“double”转换到“int”，可能丢失数据
+StereoVision.cpp(799): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
+StereoVision.cpp(821): warning C4244: “=”: 从“float”转换到“int”，可能丢失数据
+StereoVision.cpp(822): warning C4244: “=”: 从“float”转换到“int”，可能丢失数据
+StereoVision.cpp(853): warning C4244: “初始化”: 从“double”转换到“int”，可能丢失数据
+StereoVision.cpp(883): warning C4244: “参数”: 从“double”转换到“float”，可能丢失数据
   正在生成代码
-  All 1124 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
+  26 of 1136 functions ( 2.3%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    0 functions had inline decision re-evaluated but remain unchanged
   已完成代码的生成
-  Tracking3D.vcxproj -> E:\SenseEmotion\FrameEventFusion\Tracking3D\x64\Release\Tracking3D.exe
-  Tracking3D.vcxproj -> E:\SenseEmotion\FrameEventFusion\Tracking3D\x64\Release\Tracking3D.pdb (Full PDB)
+  Tracking3D.vcxproj -> E:\SenseEmotion\FrameEventFusion\Tracking3D_VC2015\x64\Release\Tracking3D_VS2015.exe
+  Tracking3D.vcxproj -> E:\SenseEmotion\FrameEventFusion\Tracking3D_VC2015\x64\Release\Tracking3D_VS2015.pdb (Full PDB)

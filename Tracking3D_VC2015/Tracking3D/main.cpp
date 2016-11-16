@@ -79,7 +79,7 @@ int main(int argc, char** argv)
 //
 //
 //
-  /// geometry right-left
+  /// geometry right-left (when facing the camera system)
     cv::Mat C = (cv::Mat_<double>(3,3)<< 1405.6, 0, 611.8319, 0, 1402.3, 487.3143,0,0,1);
     intrisicMat.push_back(C);
     C = (cv::Mat_<double>(3,3)<< 1398.9,0,639.9772,0,1396.1,471.3643,0,0,1);

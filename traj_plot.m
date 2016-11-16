@@ -20,8 +20,8 @@ traj2D_set = cell(length(7:20),1);
 traj3D_velocity_set = cell(length(7:20),1);
 traj2D_velocity_set = cell(length(7:20),1);
 
-for n = 7:20
-    traj3Dhomo = importdata(['bin/Debug/traj_Baseline-FreeRoute_subject',num2str(n),'.txt']);
+for n = 15:15
+    traj3Dhomo = importdata(['Tracking3D_VC2015/x64/Release/baseline_s',num2str(n),'.txt']);
     traj3D = zeros(length(traj3Dhomo(:,1)), 3);
     traj3D(:,1) = traj3Dhomo(:,1)./traj3Dhomo(:,4);
     traj3D(:,2) = traj3Dhomo(:,2)./traj3Dhomo(:,4);
@@ -50,14 +50,14 @@ end
 
 
 %% birdview trajectory show
-for n = 10:20
+for n = 15:15
     figure;
     plot(traj2D_set{n}(:,1), traj2D_set{n}(:,2));hold on;
     scatter(traj2D_set{n}(1:end-1,1), traj2D_set{n}(1:end-1,2),2, traj2D_velocity_set{n});
     grid on;colorbar;
 
-%     figure(2)
-%     surface([traj3D_set{n}(:,1);traj3D_set{n}(:,1)],[traj3D_set{n}(:,2);traj3D_set{n}(:,1)],[traj3D_set{n}(:,3);traj3D_set{n}(:,1)] );
-    pause;
+    figure(2)
+    plot3(traj3D_set{n}(:,1), traj3D_set{n}(:,2),traj3D_set{n}(:,3) );
+%     pause;
 end
 

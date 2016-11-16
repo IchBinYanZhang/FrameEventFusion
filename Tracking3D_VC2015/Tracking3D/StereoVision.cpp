@@ -434,7 +434,7 @@ inline void EpanechnikovKernel(const Mat& image, Rect& bbox, float c, Mat& kerne
 
 
 //
-bool StereoVision::Tracking2D( const cv::Mat& f0, const cv::Mat& f1, cv::Rect& bd, cv::Mat& hist, Tracking2DMethod method)
+bool StereoVision::Tracking2D( const cv::Mat& f0, const cv::Mat& f1, cv::Rect& bd,cv::Mat& hist, Tracking2DMethod method)
 /// f1, f0 the current frame and the previous frame
 /// bd, in parameters
 /// hist, in
@@ -503,7 +503,6 @@ bool StereoVision::Tracking2D( const cv::Mat& f0, const cv::Mat& f1, cv::Rect& b
             if(bd_motion.area() <= bd.area())
                 bd_motion = bd;
 
-
             ///extract histogram
             Mat hist_candidate, backproj_candidate;
             Mat hist_template, backproj_template;
@@ -531,7 +530,7 @@ bool StereoVision::Tracking2D( const cv::Mat& f0, const cv::Mat& f1, cv::Rect& b
             meanShift(backproj,bd, TermCriteria( TermCriteria::EPS | TermCriteria::COUNT, 5, 1 ));
 
             normalize(backproj, backproj, 0,1, NORM_MINMAX);
-            imshow("backproj", backproj);
+            //imshow("backproj", backproj);
 
             ///update bounding box and template histgram
 //            bd = trackBox.boundingRect();
@@ -588,8 +587,6 @@ void StereoVision::ImageROIAll( cv::Mat& frame, cv::Mat& roi)
 
 
 
-
-
 inline float StereoVision::SAD(cv::Mat& set1, cv::Mat& set2)
 {
     int nx = set1.cols;
@@ -608,8 +605,6 @@ inline float StereoVision::SAD(cv::Mat& set1, cv::Mat& set2)
     return dd;
 
 }
-
-
 
 
 void StereoVision::BlockMatching(cv::Mat& frame1, cv::Mat& frame2, cv::Mat& frame1_roi, cv::Mat& frame2_roi,cv::Mat& out)
@@ -947,55 +942,12 @@ void StereoVision::StereoShow(bool is_rectified, const string& filename_traj)
                 cout << "------------frame "<<i<<" -----------------"<<endl;
                 resize(frame2,frame2,Size(0,0), resize_factor_x, resize_factor_y);
                 resize(frame1,frame1,Size(0,0), resize_factor_x, resize_factor_y);
-//                undistort(frame1,frame1_ud,_intrisic_mat[0],_dist_coeff[0]);
-//                undistort(frame2,frame2_ud,_intrisic_mat[1],_dist_coeff[1]);
 
-
-//                cv::imshow("stream1",frame1);
-//                cv::imshow("stream2",frame2);
-//                cv::namedWindow("birdview", CV_WINDOW_NORMAL);
-//                ImagePreprocessing(frame1, frame1_s); // only gaussian blur
-//                ImagePreprocessing(frame2, frame2_s); // only gaussian blur
-
-//                if(i>120  )
-//                {
-//                    if(bd1.height == 0.0 || bd1.width == 0.0 || bd2.height == 0.0 || bd2.width == 0.0){
-//                        cout << " -- detection" <<endl;
-//                        Tracking2D(frame1_pre, frame1_s, bd1, hist1, TRACKINGBYDETECTION);
-//                        Tracking2D(frame2_pre, frame2_s, bd2, hist2, TRACKINGBYDETECTION);
-//
-//                    }
-//                    else
-//                    {
-//                        cout << " -- tracking" <<endl;
-//
-//                        Tracking2D(frame1_pre, frame1_s, bd1, hist1,CAMSHIFT);
-//                        trajectory1.push_back( Point2f((bd1.tl()+bd1.br())/2) );
-//                        ShowTracking(frame1,bd1, trajectory1, frame1_tracking);
-//    //                    cv::warpPerspective(frame2_visual, frame2_birdview, _H, cv::Size(frame1.cols, frame1.rows));
-//
-//                        Tracking2D(frame2_pre, frame2_s, bd2, hist2,CAMSHIFT);
-//                        trajectory2.push_back( Point2f((bd2.tl()+bd2.br())/2) );
-//                        ShowTracking(frame2,bd2, trajectory2, frame2_tracking);
-//                        // int the bird view
-////                        cv::warpPerspective(frame2, frame2_birdview, _H, cv::Size(frame1.cols, frame1.rows));
-////                        PointSetPerspectiveTransform(trajectory, trajectory_bird, _H );
-////                        ShowTracking(frame2_birdview, bd_new, trajectory_bird, frame2_birdview_tracking);
-//                        cv::imshow("stream1_tracking", frame1_tracking);
-//                        cv::imshow("stream2_tracking", frame2_tracking);
-//
-//    //                    cv::waitKey(0);
-//                    }
-//                }
-//                frame1_s = frame1;
-//                frame2_s = frame2;
                 ImagePreprocessing(frame1, frame1_s); // only gaussian blur
                 ImagePreprocessing(frame2, frame2_s); // only gaussian blur
 
                 if(i>100)
                 {
-
-
                     if(bd1.height == 0.0 || bd1.width == 0.0 || bd2.height == 0.0 || bd2.width == 0.0)
                     {
 
@@ -1006,15 +958,10 @@ void StereoVision::StereoShow(bool is_rectified, const string& filename_traj)
                             Tracking3DInitialize( frame1_pre, frame1_s, bd1, frame2_pre, frame2_s, bd2,x0);
                             trajectory3D_homo.push_back(x0);
                             setIdentity(P0, Scalar::all(0.1));
-
                         }
-
-
                     }
-
                     else
                     {
-
                         cout << " -- tracking" <<endl;
                         float vx, vy, vz;
                         Point2f A, B;
@@ -1042,12 +989,9 @@ void StereoVision::StereoShow(bool is_rectified, const string& filename_traj)
 //                        moveWindow("stream2_tracking", 0,700);
 
 
-
-//                        Tracking3D(frame1_pre, frame1_s, bd1, hist1, frame2_pre, frame2_s, bd2, hist2, EPICAMSHIFT, HSVLBP);
-                        Tracking2D( frame2_pre, frame2_s, bd2,hist2, CAMSHIFT);
-                        Tracking2D( frame1_pre, frame1_s, bd1,hist1, CAMSHIFT);
-
-                        Tracking3DKalman(bd1,bd2,xt_1, vx, vy, vz, xt, P0, A, B);
+                        Tracking2D( frame2_pre, frame2_s, bd2, hist2, CAMSHIFT);
+                        Tracking2D( frame1_pre, frame1_s, bd1, hist1, CAMSHIFT);
+                        Tracking3DKalman(bd1,bd2, xt_1, vx, vy, vz, xt, P0, A, B);
 
                         trajectory3D_homo.push_back(xt);
                         traj_3Dhomo.open(filename_traj.c_str(), std::fstream::out | std::fstream::app);
@@ -1065,33 +1009,36 @@ void StereoVision::StereoShow(bool is_rectified, const string& filename_traj)
 //                        ShowTracking(trajectory_bird, frame1_birdview);
 //                        cout << Point2f(x,y) <<endl;
 
-
+						/// store the trajs and visualization
                         trajectory1_estimated.push_back(A);
-//                        ShowTracking(frame1,bd1, trajectory1_estimated, frame1_tracking_est);
+                        ShowTracking(frame1,bd1, trajectory1_estimated, frame1_tracking_est);
 
                         trajectory2_estimated.push_back(B);
-//                        ShowTracking(frame2,bd2, trajectory2_estimated, frame2_tracking_est);
-
+                        ShowTracking(frame2,bd2, trajectory2_estimated, frame2_tracking_est);
 
                         trajectory1.push_back( Point2f((bd1.tl()+bd1.br())/2) );
-//                        ShowTracking(frame1,bd1, trajectory1, frame1_tracking);
+                        ShowTracking(frame1,bd1, trajectory1, frame1_tracking);
 
                         trajectory2.push_back( Point2f((bd2.tl()+bd2.br())/2) );
-//                        ShowTracking(frame2,bd2, trajectory2, frame2_tracking);
+                        ShowTracking(frame2,bd2, trajectory2, frame2_tracking);
+
+						/// update the bounding box based on point A and B, the 2D projections of xt at cam1 and cam2.
+						Point2f dd1 = A - (Point2f(bd1.br()) + Point2f(bd1.tl())) / 2.0f;
+						Point2f dd2 = B - (Point2f(bd2.br()) + Point2f(bd2.tl())) / 2.0f;
+						bd1.br() = bd1.br() + Point(dd1);
+						bd1.tl() = bd1.tl() + Point(dd1);
+						bd2.br() = bd2.br() + Point(dd2);
+						bd2.tl() = bd2.tl() + Point(dd2);
 
 
-//                        cv::imshow("stream1_tracking", frame1_tracking);
-//                        cv::imshow("stream2_tracking", frame2_tracking);
-//                        cv::imshow("stream1_tracking_est", frame1_tracking_est);
-//                        cv::imshow("stream2_tracking_est", frame2_tracking_est);
-////                        cv::imshow("bird_view", frame1_birdview);
-//                        cv::waitKey(5);
-
+                        cv::imshow("stream1_observation", frame1_tracking);
+                        cv::imshow("stream2_observation", frame2_tracking);
+                        cv::imshow("stream1_estimated", frame1_tracking_est);
+						cv::imshow("stream2_estimated", frame2_tracking_est);
+////                        cv::imshow("bird_view", frame1_birdvie)w;
+						cv::waitKey(5);
                     }
-
-
                 }
-
 
                 frame1_pre = frame1_s.clone();
                 frame2_pre = frame2_s.clone();
@@ -1100,8 +1047,6 @@ void StereoVision::StereoShow(bool is_rectified, const string& filename_traj)
         }
 
     }
-
-
 
 }
 
@@ -1420,8 +1365,6 @@ bool StereoVision::Tracking3D(const cv::Mat& f0_pre, const cv::Mat& f0_cur, cv::
 void StereoVision::Tracking3DKalman(Rect& bd0, Rect& bd1, Mat& pt_in, float vx, float vy, float vz, Mat& pt_out, Mat& Pt, Point2f& post0, Point2f& post1)
 {
 
-
-
     /// define the standard Kalman filter
     const int dim_state=7;
     const int dim_measure = 6;
@@ -1445,11 +1388,6 @@ void StereoVision::Tracking3DKalman(Rect& bd0, Rect& bd1, Mat& pt_in, float vx, 
 //    kf.processNoiseCov.at<float>(0)= 10.0f;
 //    kf.processNoiseCov.at<float>(8)= 10.0f;
     kf.processNoiseCov.at<float>(24)= 0.0f;
-
-
-
-
-
 
     // observation model
     Mat R = (Mat_<float>(4,dim_state) <<
@@ -1483,47 +1421,39 @@ void StereoVision::Tracking3DKalman(Rect& bd0, Rect& bd1, Mat& pt_in, float vx, 
     kf.statePost.at<float>(6) = vz;
     kf.errorCovPost = Pt;
 
-
-
-
     /// find the current observation
     vector<Point2f> points0;
     vector<Point2f> points1;
 
     Mat ot, x0, x1;
-    x0 = (Mat_<float>(3,1) << (bd0.br().x + bd0.tl().x)/2.0f , (bd0.br().y + bd0.tl().y)/2.0f, 1.0f);
-    x1 = (Mat_<float>(3,1) << (bd1.br().x + bd1.tl().x)/2.0f , (bd1.br().y + bd1.tl().y)/2.0f, 1.0f);
+    x0 = (Mat_<float>(2,1) << (bd0.br().x + bd0.tl().x)/2.0f , (bd0.br().y + bd0.tl().y)/2.0f);
+    x1 = (Mat_<float>(2,1) << (bd1.br().x + bd1.tl().x)/2.0f , (bd1.br().y + bd1.tl().y)/2.0f);
 //    points0.push_back( static_cast<Point2f>((bd0.br()+bd0.tl())/2.0 ) );
 //    points1.push_back( static_cast<Point2f>((bd1.br()+bd1.tl())/2.0 ) );
 
 
 
     // map to undistorted image
-//    Mat points0_tmp = Mat(points0);
-//    Mat points1_tmp = Mat(points1);
-//
-//    Mat points_undist0,points_undist1;
-//    undistortPoints(points0_tmp, points_undist0,_intrisic_mat[0], _dist_coeff[0], cv::noArray(), _intrisic_mat[0]);
-//    undistortPoints(points1_tmp, points_undist1,_intrisic_mat[1], _dist_coeff[1], cv::noArray(), _intrisic_mat[1]);
-//    ot = (Mat_<float>(dim_measure,1) << points_undist0.at<Point2f>(0).x, points_undist0.at<Point2f>(0).y, 1.0f,
-//                              points_undist1.at<Point2f>(0).x, points_undist1.at<Point2f>(0).y, 1.0f
-//
-//        );
-    vconcat(x0,x1, ot);
+	Mat xx0(1, 1, CV_32FC2, Scalar(x0.at<float>(0), x0.at<float>(1)));
+	Mat xx1(1, 1, CV_32FC2, Scalar(x1.at<float>(0), x1.at<float>(1)));
+	Mat points_undist0 = xx0.clone();
+	Mat points_undist1 = xx1.clone();
 
+    undistortPoints(xx0, points_undist0,_intrisic_mat[0], _dist_coeff[0], cv::noArray(), _intrisic_mat[0]);
+    undistortPoints(xx1, points_undist1,_intrisic_mat[1], _dist_coeff[1], cv::noArray(), _intrisic_mat[1]);
 
-
-
+	Mat xx0_ud = (Mat_<float>(3, 1) << points_undist0.at<float>(0), points_undist0.at<float>(1), 1.0f);
+	Mat xx1_ud = (Mat_<float>(3, 1) << points_undist1.at<float>(0), points_undist1.at<float>(1), 1.0f);
+    vconcat(xx0_ud, xx1_ud, ot);
+	
     cout << "===observation:==="<<endl;
     cout << ot <<endl;
 
-
-
     cout <<"===previous state==="<<endl;
     cout << kf.statePost<<endl;
+
     /// perform predicting and updating
     Mat predicted = kf.predict();
-
     Mat estimated = kf.correct(ot);
 
     pt_out = estimated.rowRange(Range(0,4));
