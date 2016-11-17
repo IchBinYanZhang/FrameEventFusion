@@ -79,33 +79,52 @@ int main(int argc, char** argv)
 //
 //
 //
-  /// geometry right-left
-    cv::Mat C = (cv::Mat_<double>(3,3)<< 1405.6, 0, 611.8319, 0, 1402.3, 487.3143,0,0,1);
-    intrisicMat.push_back(C);
-    C = (cv::Mat_<double>(3,3)<< 1398.9,0,639.9772,0,1396.1,471.3643,0,0,1);
-    intrisicMat.push_back(C);
+  /// geometry right-left (when facing the camera system)
+    //cv::Mat C = (cv::Mat_<double>(3,3)<< 1405.6, 0, 611.8319, 0, 1402.3, 487.3143,0,0,1);
+    //intrisicMat.push_back(C);
+    //C = (cv::Mat_<double>(3,3)<< 1398.9,0,639.9772,0,1396.1,471.3643,0,0,1);
+    //intrisicMat.push_back(C);
 
-    cv::Mat R = (cv::Mat_<double>(3,3)<< 1,0,0,0,1,0,0,0,1);
-    rotationMat.push_back(R);
-    R = (cv::Mat_<double>(3,3)<< 0.7948, 0.1995, -0.5731, -0.1937, 0.9784, 0.0720, 0.5751, 0.0538, 0.8163);
-    rotationMat.push_back(R);
+    //cv::Mat R = (cv::Mat_<double>(3,3)<< 1,0,0,0,1,0,0,0,1);
+    //rotationMat.push_back(R);
+    //R = (cv::Mat_<double>(3,3)<< 0.7948, 0.1995, -0.5731, -0.1937, 0.9784, 0.0720, 0.5751, 0.0538, 0.8163);
+    //rotationMat.push_back(R);
 
-    cv::Mat dc = (cv::Mat_<double>(4,1) << -0.1776, 0.0447, 0, 0);
-    distCoeff.push_back(dc);
-    dc =(cv::Mat_<double>(4,1) << -0.1625, 0.0571, 0, 0);
-    distCoeff.push_back(dc);
+    //cv::Mat dc = (cv::Mat_<double>(4,1) << -0.1776, 0.0447, 0, 0);
+    //distCoeff.push_back(dc);
+    //dc =(cv::Mat_<double>(4,1) << -0.1625, 0.0571, 0, 0);
+    //distCoeff.push_back(dc);
 
-    cv::Mat tv =(cv::Mat_<double>(3,1) << 0,0,0);
-    transVec.push_back(tv);
-    tv = (cv::Mat_<double>(3,1)<<2735.0, -262.0901, 711.3072);
-    transVec.push_back(tv);
+    //cv::Mat tv =(cv::Mat_<double>(3,1) << 0,0,0);
+    //transVec.push_back(tv);
+    //tv = (cv::Mat_<double>(3,1)<<2735.0, -262.0901, 711.3072);
+    //transVec.push_back(tv);
+
+
+  /// geometry right-left (when facing the camera system) from caltech-calib-toolbox
+	cv::Mat C = (cv::Mat_<double>(3, 3) << 1408.60565, 0, 655.58021, 0, 1406.49751, 484.92589, 0, 0, 1);
+	intrisicMat.push_back(C);
+	C = (cv::Mat_<double>(3, 3) << 1409.51309, 0, 599.78757, 0, 1407.70186, 490.85428, 0, 0, 1);
+	intrisicMat.push_back(C);
+
+	cv::Mat R = (cv::Mat_<double>(3, 3) << 1, 0, 0, 0, 1, 0, 0, 0, 1);
+	rotationMat.push_back(R);
+	R = (cv::Mat_<double>(3, 3) << 0.7862, -0.1989, 0.5851, 0.2009, 0.9776, 0.0625, -0.5845, 0.0684, 0.8085);
+	rotationMat.push_back(R);
+
+	cv::Mat dc = (cv::Mat_<double>(4, 1) << -0.17584, 0.07826, 0.00033,0.00118);
+	distCoeff.push_back(dc);
+	dc = (cv::Mat_<double>(4, 1) << -0.18974, 0.17220,- 0.00037,- 0.00033);
+	distCoeff.push_back(dc);
+
+	cv::Mat tv = (cv::Mat_<double>(3, 1) << 0, 0, 0);
+	transVec.push_back(tv);
+	tv = (cv::Mat_<double>(3, 1) << -2629.31198,-327.29622, 1001.04147);
+	transVec.push_back(tv);
 
     ground_plane = (cv::Mat_<double>(3,2) << 0.93674, 0.25936, 0.10902, 0.42199, -0.33263, 0.86871);
 
-//
-//
-//
-//
+
     sv.SetCamCalibration(intrisicMat, distCoeff, rotationMat, transVec);
     sv.SetGroundPlane(ground_plane);
 //

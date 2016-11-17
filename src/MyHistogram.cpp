@@ -32,13 +32,6 @@ MyHistogram::MyHistogram(const cv::Mat& image, const cv::Rect& bd0, FeatureSpace
 
 
 
-
-
-
-
-
-
-
 void MyHistogram::SetImage(const cv::Mat& image)
 {
     _img = image.clone();
@@ -648,21 +641,6 @@ void MyHistogram::BackProjection( const cv::Mat& in, cv::Mat& backproj)
 
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

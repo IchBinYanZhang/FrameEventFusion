@@ -53,7 +53,7 @@ void EventStream::ReadFromFile(std::string& filename, int maxevents)
 
     /// reading events and time stamps
     file.seekg(0,std::ios::end);
-    int num_events = floor((file.tellg()-header_end_pos)/NUM_BYTES_PER_EVENT); // count the number of events in the file
+    int num_events = floor((long(file.tellg()) - header_end_pos)/NUM_BYTES_PER_EVENT); // count the number of events in the file
     num_events = min(num_events, maxevents);
     char memblock;
 

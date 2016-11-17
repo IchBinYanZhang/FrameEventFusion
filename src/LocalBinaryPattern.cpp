@@ -1,5 +1,5 @@
 #include "LocalBinaryPattern.h"
-
+#define M_PI 3.1415926
 LocalBinaryPattern::LocalBinaryPattern(int radius, int n_points, bool uniform)
 {
     _r = radius;
