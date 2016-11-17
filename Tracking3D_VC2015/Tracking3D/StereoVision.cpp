@@ -484,7 +484,6 @@ bool StereoVision::Tracking2D( const cv::Mat& f0, const cv::Mat& f1, cv::Rect& b
                 EpanechnikovKernel(f1, bd, 11.0, kernel);
                 hist_generator.ComputeHistWeights(kernel);
                 hist_generator.GetHist(hist);
-
             }
 
             break;
@@ -957,6 +956,7 @@ void StereoVision::StereoShow(bool is_rectified, const string& filename_traj)
                         if(Tracking2D( frame2_pre, frame2_s, bd2,hist2, TRACKINGBYDETECTION) && Tracking2D( frame1_pre, frame1_s, bd1,hist1, TRACKINGBYDETECTION)){
                             Tracking3DInitialize( frame1_pre, frame1_s, bd1, frame2_pre, frame2_s, bd2,x0);
                             trajectory3D_homo.push_back(x0);
+
                             setIdentity(P0, Scalar::all(0.1));
                         }
                     }
@@ -979,9 +979,7 @@ void StereoVision::StereoShow(bool is_rectified, const string& filename_traj)
                             vx = 0.0f;
                             vy = 0.0f;
                             vz = 0.0f;
-
                         }
-
 
 //                        namedWindow("stream1_tracking", CV_WINDOW_NORMAL);
 //                        namedWindow("stream2_tracking", CV_WINDOW_NORMAL);
@@ -1023,12 +1021,12 @@ void StereoVision::StereoShow(bool is_rectified, const string& filename_traj)
                         ShowTracking(frame2,bd2, trajectory2, frame2_tracking);
 
 						/// update the bounding box based on point A and B, the 2D projections of xt at cam1 and cam2.
-						Point2f dd1 = A - (Point2f(bd1.br()) + Point2f(bd1.tl())) / 2.0f;
-						Point2f dd2 = B - (Point2f(bd2.br()) + Point2f(bd2.tl())) / 2.0f;
-						bd1.br() = bd1.br() + Point(dd1);
-						bd1.tl() = bd1.tl() + Point(dd1);
-						bd2.br() = bd2.br() + Point(dd2);
-						bd2.tl() = bd2.tl() + Point(dd2);
+						//Point2f dd1 = A - (Point2f(bd1.br()) + Point2f(bd1.tl())) / 2.0f;
+						//Point2f dd2 = B - (Point2f(bd2.br()) + Point2f(bd2.tl())) / 2.0f;
+						//bd1.br() = bd1.br() + Point(dd1);
+						//bd1.tl() = bd1.tl() + Point(dd1);
+						//bd2.br() = bd2.br() + Point(dd2);
+						//bd2.tl() = bd2.tl() + Point(dd2);
 
 
                         cv::imshow("stream1_observation", frame1_tracking);
@@ -1052,8 +1050,6 @@ void StereoVision::StereoShow(bool is_rectified, const string& filename_traj)
 
 
 
-
-
 bool StereoVision::Tracking3D(const cv::Mat& f0_pre, const cv::Mat& f0_cur, cv::Rect& bd0, cv::Mat& hist0,
                               const cv::Mat& f1_pre, const cv::Mat& f1_cur, cv::Rect& bd1, cv::Mat& hist1,
                               Tracking3DMethod method, FeatureMethod method_feature)
@@ -1066,9 +1062,6 @@ bool StereoVision::Tracking3D(const cv::Mat& f0_pre, const cv::Mat& f0_cur, cv::
     Tracking3DMethod _method = TRACKINGBYDETECTION3;
     Mat image0, image0_h, image0_s, image0_v,image0_lbp, image0_lbp1,image0_lbp2,mask = Mat::zeros(f0_cur.size(), CV_8UC1);
     Mat image1, image1_h, image1_s, image1_v,image1_lbp,image1_lbp1,image1_lbp2;
-
-
-
 
     switch(method)
     {
@@ -1089,9 +1082,6 @@ bool StereoVision::Tracking3D(const cv::Mat& f0_pre, const cv::Mat& f0_cur, cv::
             dec1.GetROI(roi1);
             roi1.convertTo(roi1,CV_8UC1);
             SingleBoundingBoxFromROI(roi1, bd1_tmp);
-
-
-
 
 
 
@@ -1123,13 +1113,8 @@ bool StereoVision::Tracking3D(const cv::Mat& f0_pre, const cv::Mat& f0_cur, cv::
                 hist_generator0.GetHist(hist0);
                 hist_generator1.GetHist(hist1);
 
-
-
-
                 }
-
             }
-
             break;
         }
 
@@ -1175,7 +1160,6 @@ bool StereoVision::Tracking3D(const cv::Mat& f0_pre, const cv::Mat& f0_cur, cv::
                 bd1_motion = bd1;
             }
 
-
             /// fundemental matrix
             cv::Mat pdf_epi0, pdf_epi1;
             cv::Mat F01, F10; // from image 0 to image1 || from image 1 to image 0
@@ -1190,20 +1174,13 @@ bool StereoVision::Tracking3D(const cv::Mat& f0_pre, const cv::Mat& f0_cur, cv::
                                              F10);
 
 
-
             F01.convertTo(F01,CV_32F);
             F10.convertTo(F10,CV_32F);
 
             cout << "-- extract epipolar constraint" <<endl;
 
-
-
-
             if (bd0_motion.area()!=0 && bd1_motion.area()!=0)
             {
-
-
-
 
                 ///extract histogram and back projection pdf
 
@@ -1217,8 +1194,6 @@ bool StereoVision::Tracking3D(const cv::Mat& f0_pre, const cv::Mat& f0_cur, cv::
                 hist_generator0.BackProjection(f0_cur, backproj0);
                 hist_generator1.BackProjection(f1_cur, backproj1);
                 cout << "3"<<endl;
-
-
 
             cv::GaussianBlur(backproj0, backproj0, cv::Size(0,0), 1.0,1.0, BORDER_REFLECT);
             cv::GaussianBlur(backproj1, backproj1, cv::Size(0,0), 1.0,1.0, BORDER_REFLECT);
@@ -1373,21 +1348,36 @@ void StereoVision::Tracking3DKalman(Rect& bd0, Rect& bd1, Mat& pt_in, float vx, 
     const float alpha = 0.0;
 
     // process model
-    kf.transitionMatrix = (Mat_<float>(dim_state, dim_state)<<
+	double lambda = 1;
+ //   kf.transitionMatrix = (Mat_<float>(dim_state, dim_state)<<
 
-                           1,0,0,0,1,0,0,
-                           0,1,0,0,0,1,0,
-                           0,0,1,0,0,0,1,
-                           0,0,0,1,0,0,0,
-                           0,0,0,0,1,0,0,
-                           0,0,0,0,0,1,0,
-                           0,0,0,0,0,0,1
-                           );
+ //                          1-lambda,0,0,0,lambda,0,0,
+ //                          0,1-lambda,0,0,0, lambda,0,
+ //                          0,0,1-lambda,0,0,0, lambda,
+ //                          0,0,0,1 - lambda,0,0,0,
+ //                          0,0,0,0,1,0,0,
+ //                          0,0,0,0,0,1,0,
+ //                          0,0,0,0,0,0,1
+ //                          );
+
+	kf.transitionMatrix = (Mat_<float>(dim_state, dim_state) <<
+
+		1, 0, 0, 0, lambda, 0, 0,
+		0, 1, 0, 0, 0, lambda, 0,
+		0, 0, 1, 0, 0, 0, lambda,
+		0, 0, 0, 1, 0, 0, 0,
+		0, 0, 0, 0, 1, 0, 0,
+		0, 0, 0, 0, 0, 1, 0,
+		0, 0, 0, 0, 0, 0, 1
+		);
+
+
+
 
     setIdentity(kf.processNoiseCov, Scalar::all(0.1));
 //    kf.processNoiseCov.at<float>(0)= 10.0f;
 //    kf.processNoiseCov.at<float>(8)= 10.0f;
-    kf.processNoiseCov.at<float>(24)= 0.0f;
+//    kf.processNoiseCov.at<float>(24)= 0.0f;
 
     // observation model
     Mat R = (Mat_<float>(4,dim_state) <<
@@ -1405,9 +1395,9 @@ void StereoVision::Tracking3DKalman(Rect& bd0, Rect& bd1, Mat& pt_in, float vx, 
 
 
     vconcat(P0*R/pt_in.at<float>(2), P1*R/pt_in.at<float>(2), kf.measurementMatrix);
-    setIdentity(kf.measurementNoiseCov, Scalar::all(1));
-//    kf.measurementNoiseCov.at<float>(14)= 10;
-//    kf.measurementNoiseCov.at<float>(35)= 10;
+    setIdentity(kf.measurementNoiseCov, Scalar::all(0.1));
+ //   kf.measurementNoiseCov.at<float>(14)= 10;
+	//kf.measurementNoiseCov.at<float>(35) = 10;
 
 
 
@@ -1426,25 +1416,26 @@ void StereoVision::Tracking3DKalman(Rect& bd0, Rect& bd1, Mat& pt_in, float vx, 
     vector<Point2f> points1;
 
     Mat ot, x0, x1;
-    x0 = (Mat_<float>(2,1) << (bd0.br().x + bd0.tl().x)/2.0f , (bd0.br().y + bd0.tl().y)/2.0f);
-    x1 = (Mat_<float>(2,1) << (bd1.br().x + bd1.tl().x)/2.0f , (bd1.br().y + bd1.tl().y)/2.0f);
+    x0 = (Mat_<float>(3,1) << (bd0.br().x + bd0.tl().x)/2.0f , (bd0.br().y + bd0.tl().y)/2.0f, 1.0f);
+    x1 = (Mat_<float>(3,1) << (bd1.br().x + bd1.tl().x)/2.0f , (bd1.br().y + bd1.tl().y)/2.0f, 1.0f);
 //    points0.push_back( static_cast<Point2f>((bd0.br()+bd0.tl())/2.0 ) );
 //    points1.push_back( static_cast<Point2f>((bd1.br()+bd1.tl())/2.0 ) );
 
 
 
     // map to undistorted image
-	Mat xx0(1, 1, CV_32FC2, Scalar(x0.at<float>(0), x0.at<float>(1)));
-	Mat xx1(1, 1, CV_32FC2, Scalar(x1.at<float>(0), x1.at<float>(1)));
-	Mat points_undist0 = xx0.clone();
-	Mat points_undist1 = xx1.clone();
+	//Mat xx0(1, 1, CV_32FC2, Scalar(x0.at<float>(0), x0.at<float>(1)));
+	//Mat xx1(1, 1, CV_32FC2, Scalar(x1.at<float>(0), x1.at<float>(1)));
+	//Mat points_undist0 = xx0.clone();
+	//Mat points_undist1 = xx1.clone();
 
-    undistortPoints(xx0, points_undist0,_intrisic_mat[0], _dist_coeff[0], cv::noArray(), _intrisic_mat[0]);
-    undistortPoints(xx1, points_undist1,_intrisic_mat[1], _dist_coeff[1], cv::noArray(), _intrisic_mat[1]);
-
-	Mat xx0_ud = (Mat_<float>(3, 1) << points_undist0.at<float>(0), points_undist0.at<float>(1), 1.0f);
-	Mat xx1_ud = (Mat_<float>(3, 1) << points_undist1.at<float>(0), points_undist1.at<float>(1), 1.0f);
-    vconcat(xx0_ud, xx1_ud, ot);
+ //   undistortPoints(xx0, points_undist0,_intrisic_mat[0], _dist_coeff[0], cv::noArray(), _intrisic_mat[0]);
+ //   undistortPoints(xx1, points_undist1,_intrisic_mat[1], _dist_coeff[1], cv::noArray(), _intrisic_mat[1]);
+	//cout << points_undist0 << endl;
+	//cout << points_undist1 << endl;
+	//Mat xx0_ud = (Mat_<float>(3, 1) << points_undist0.at<float>(0), points_undist0.at<float>(1), 1.0f);
+	//Mat xx1_ud = (Mat_<float>(3, 1) << points_undist1.at<float>(0), points_undist1.at<float>(1), 1.0f);
+    vconcat(x0, x1, ot);
 	
     cout << "===observation:==="<<endl;
     cout << ot <<endl;
@@ -1546,7 +1537,7 @@ void StereoVision::Tracking3DInitialize( cv::Mat& f1_pre, cv::Mat& f1_cur, cv::R
     FundamentalMatrixFromCalibration(_intrisic_mat[0], _rotation_mat[0], _trans_vec[0],
                                      _intrisic_mat[1], _rotation_mat[1], _trans_vec[1],
                                      F);
-
+	cout << F << endl;
     for(int i = 0; i < matches_tmp.size(); i++){
         Point2f x = kpt1[matches_tmp[i].queryIdx].pt;
         Point2f y = kpt2[matches_tmp[i].trainIdx].pt;
@@ -1556,22 +1547,20 @@ void StereoVision::Tracking3DInitialize( cv::Mat& f1_pre, cv::Mat& f1_cur, cv::R
                      + (F.at<float>(1,0)* x.x + F.at<float>(1,1)* x.y + F.at<float>(1,2))*y.y
                      + (F.at<float>(2,0)* x.x + F.at<float>(2,1)* x.y + F.at<float>(2,2)) );
 
-        if(innerF < 0.5f){
+        if(innerF < 1.5f){
             matches.push_back(matches_tmp[i]);
             pt_set1.push_back(x);
             pt_set2.push_back(y);
         }
-
-
     }
     matches_tmp.clear();
 
     /// visualize the matching
-//    cv::Mat display_match;
-//    drawMatches( f1_cur, kpt1, f2_cur, kpt2, matches, display_match );
-//    namedWindow("matches", CV_WINDOW_NORMAL);
-//    imshow("matches", display_match);
-//    waitKey(0);
+    //cv::Mat display_match;
+    //drawMatches( f1_cur, kpt1, f2_cur, kpt2, matches, display_match );
+    //namedWindow("matches", CV_WINDOW_NORMAL);
+    //imshow("matches", display_match);
+    //waitKey(0);
 
     /// triangulate points
 
@@ -1586,8 +1575,8 @@ void StereoVision::Tracking3DInitialize( cv::Mat& f1_pre, cv::Mat& f1_cur, cv::R
     reduce(pts3D_homo,center, 1, CV_REDUCE_AVG);
 
 
-//    cv::imshow("roi1",roi1);
-//    cv::imshow("roi2",roi2);
+    //cv::imshow("roi1",roi1);
+    //cv::imshow("roi2",roi2);
 
 
 }

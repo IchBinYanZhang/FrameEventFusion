@@ -9,15 +9,15 @@ StereoVision.cpp(214): warning C4244: “初始化”: 从“double”转换到�
 StereoVision.cpp(216): warning C4244: “初始化”: 从“double”转换到“float”，可能丢失数据
 StereoVision.cpp(225): warning C4244: “初始化”: 从“double”转换到“uint16_t”，可能丢失数据
 StereoVision.cpp(226): warning C4244: “初始化”: 从“double”转换到“uint16_t”，可能丢失数据
-StereoVision.cpp(674): warning C4244: “初始化”: 从“__int64”转换到“int”，可能丢失数据
-StereoVision.cpp(780): warning C4244: “初始化”: 从“double”转换到“int”，可能丢失数据
-StereoVision.cpp(799): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
+StereoVision.cpp(673): warning C4244: “初始化”: 从“__int64”转换到“int”，可能丢失数据
+StereoVision.cpp(779): warning C4244: “初始化”: 从“double”转换到“int”，可能丢失数据
+StereoVision.cpp(798): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
+StereoVision.cpp(820): warning C4244: “=”: 从“float”转换到“int”，可能丢失数据
 StereoVision.cpp(821): warning C4244: “=”: 从“float”转换到“int”，可能丢失数据
-StereoVision.cpp(822): warning C4244: “=”: 从“float”转换到“int”，可能丢失数据
-StereoVision.cpp(853): warning C4244: “初始化”: 从“double”转换到“int”，可能丢失数据
-StereoVision.cpp(883): warning C4244: “参数”: 从“double”转换到“float”，可能丢失数据
+StereoVision.cpp(852): warning C4244: “初始化”: 从“double”转换到“int”，可能丢失数据
+StereoVision.cpp(882): warning C4244: “参数”: 从“double”转换到“float”，可能丢失数据
   正在生成代码
-  26 of 1136 functions ( 2.3%) were compiled, the rest were copied from previous compilation.
+  35 of 1130 functions ( 3.1%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
     0 functions had inline decision re-evaluated but remain unchanged
   已完成代码的生成

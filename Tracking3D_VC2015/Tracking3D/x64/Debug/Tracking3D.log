@@ -1,1 +1,31 @@
-﻿
+﻿C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\V140\Microsoft.CppBuild.targets(392,5): warning MSB8028: The intermediate directory (x64\Debug\) contains files shared from another project (Tracking3D.vcxproj).  This can lead to incorrect clean and rebuild behavior.
+  main.cpp
+e:\senseemotion\frameeventfusion\external\opencv-3.1.0\build\include\opencv2\core\mat.hpp(1965): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+e:\senseemotion\frameeventfusion\external\opencv-3.1.0\build\include\opencv2\core\persistence.hpp : warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+e:\senseemotion\frameeventfusion\external\opencv-3.1.0\build\include\opencv2\core\utility.hpp : warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+  StereoVision.cpp
+e:\senseemotion\frameeventfusion\external\opencv-3.1.0\build\include\opencv2\core\mat.hpp(1965): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+e:\senseemotion\frameeventfusion\external\opencv-3.1.0\build\include\opencv2\core\persistence.hpp : warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+e:\senseemotion\frameeventfusion\external\opencv-3.1.0\build\include\opencv2\core\utility.hpp : warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+e:\senseemotion\frameeventfusion\external\opencv-3.1.0\build\include\opencv2\core\utility.hpp : warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+e:\senseemotion\frameeventfusion\tracking3d_vc2015\tracking3d\stereovision.cpp(211): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
+e:\senseemotion\frameeventfusion\tracking3d_vc2015\tracking3d\stereovision.cpp(214): warning C4244: “初始化”: 从“double”转换到“float”，可能丢失数据
+e:\senseemotion\frameeventfusion\tracking3d_vc2015\tracking3d\stereovision.cpp(216): warning C4244: “初始化”: 从“double”转换到“float”，可能丢失数据
+e:\senseemotion\frameeventfusion\tracking3d_vc2015\tracking3d\stereovision.cpp(225): warning C4244: “初始化”: 从“double”转换到“uint16_t”，可能丢失数据
+e:\senseemotion\frameeventfusion\tracking3d_vc2015\tracking3d\stereovision.cpp(226): warning C4244: “初始化”: 从“double”转换到“uint16_t”，可能丢失数据
+e:\senseemotion\frameeventfusion\tracking3d_vc2015\tracking3d\stereovision.cpp(674): warning C4244: “初始化”: 从“__int64”转换到“int”，可能丢失数据
+e:\senseemotion\frameeventfusion\tracking3d_vc2015\tracking3d\stereovision.cpp(780): warning C4244: “初始化”: 从“double”转换到“int”，可能丢失数据
+e:\senseemotion\frameeventfusion\tracking3d_vc2015\tracking3d\stereovision.cpp(799): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
+e:\senseemotion\frameeventfusion\tracking3d_vc2015\tracking3d\stereovision.cpp(821): warning C4244: “=”: 从“float”转换到“int”，可能丢失数据
+e:\senseemotion\frameeventfusion\tracking3d_vc2015\tracking3d\stereovision.cpp(822): warning C4244: “=”: 从“float”转换到“int”，可能丢失数据
+e:\senseemotion\frameeventfusion\tracking3d_vc2015\tracking3d\stereovision.cpp(853): warning C4244: “初始化”: 从“double”转换到“int”，可能丢失数据
+e:\senseemotion\frameeventfusion\tracking3d_vc2015\tracking3d\stereovision.cpp(883): warning C4244: “参数”: 从“double”转换到“float”，可能丢失数据
+  MyHistogram.cpp
+e:\senseemotion\frameeventfusion\external\opencv-3.1.0\build\include\opencv2\core\mat.hpp(1965): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+e:\senseemotion\frameeventfusion\external\opencv-3.1.0\build\include\opencv2\core\persistence.hpp : warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+e:\senseemotion\frameeventfusion\external\opencv-3.1.0\build\include\opencv2\core\utility.hpp : warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+e:\senseemotion\frameeventfusion\tracking3d_vc2015\tracking3d\myhistogram.cpp(141): warning C4244: “初始化”: 从“double”转换到“int”，可能丢失数据
+e:\senseemotion\frameeventfusion\tracking3d_vc2015\tracking3d\myhistogram.cpp(274): warning C4244: “初始化”: 从“double”转换到“int”，可能丢失数据
+  正在生成代码...
+  Tracking3D.vcxproj -> E:\SenseEmotion\FrameEventFusion\Tracking3D_VC2015\x64\Debug\Tracking3D_VS2015.exe
+  Tracking3D.vcxproj -> E:\SenseEmotion\FrameEventFusion\Tracking3D_VC2015\x64\Debug\Tracking3D_VS2015.pdb (Full PDB)
