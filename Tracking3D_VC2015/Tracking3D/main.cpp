@@ -119,7 +119,7 @@ int main(int argc, char** argv)
 
 	cv::Mat tv = (cv::Mat_<double>(3, 1) << 0, 0, 0);
 	transVec.push_back(tv);
-	tv = (cv::Mat_<double>(3, 1) << -2629.31198,- 327.29622, 1001.04147);
+	tv = (cv::Mat_<double>(3, 1) << -2629.31198,-327.29622, 1001.04147);
 	transVec.push_back(tv);
 
     ground_plane = (cv::Mat_<double>(3,2) << 0.93674, 0.25936, 0.10902, 0.42199, -0.33263, 0.86871);

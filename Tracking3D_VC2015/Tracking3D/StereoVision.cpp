@@ -1023,12 +1023,9 @@ void StereoVision::StereoShow(bool is_rectified, const string& filename_traj)
 						/// update the bounding box based on point A and B, the 2D projections of xt at cam1 and cam2.
 						//Point2f dd1 = A - (Point2f(bd1.br()) + Point2f(bd1.tl())) / 2.0f;
 						//Point2f dd2 = B - (Point2f(bd2.br()) + Point2f(bd2.tl())) / 2.0f;
-						//bd1.br() = bd1.br() + Point(dd1);
-						//bd1.tl() = bd1.tl() + Point(dd1);
-						//bd2.br() = bd2.br() + Point(dd2);
-						//bd2.tl() = bd2.tl() + Point(dd2);
-
-
+						//bd1 = bd1 + Point(dd1);
+						//bd2 = bd2 + Point(dd2);
+						
                         cv::imshow("stream1_observation", frame1_tracking);
                         cv::imshow("stream2_observation", frame2_tracking);
                         cv::imshow("stream1_estimated", frame1_tracking_est);
@@ -1455,7 +1452,6 @@ void StereoVision::Tracking3DKalman(Rect& bd0, Rect& bd1, Mat& pt_in, float vx, 
     cout <<"===update===" << endl;
     cout << estimated<<endl;
 //        cout << "estimated covariance"<<kf.errorCovPost<<endl;
-
 
 
     /// project estimated to 2D image planes
