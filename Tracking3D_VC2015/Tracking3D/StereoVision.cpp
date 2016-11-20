@@ -453,8 +453,6 @@ bool StereoVision::Tracking2D( const cv::Mat& f0, const cv::Mat& f1, cv::Rect& b
 
     switch(method)
     {
-
-
         case TRACKINGBYDETECTION:
         /// it directly gives us the bounding box. This can be used for tracking initialization.
         {
@@ -466,8 +464,6 @@ bool StereoVision::Tracking2D( const cv::Mat& f0, const cv::Mat& f1, cv::Rect& b
             roi.convertTo(roi,CV_8UC1);
             SingleBoundingBoxFromROI(roi, bd_tmp);
 
-
-
             if(bd_tmp.area() <= 5000)
             {
                 std::cout << " -- no motion is detected." <<std::endl;
@@ -477,7 +473,6 @@ bool StereoVision::Tracking2D( const cv::Mat& f0, const cv::Mat& f1, cv::Rect& b
                 /// compute the bounding box
                 bd = bd_tmp;
                 found_box = true;
-
 
                 /// compute the histogram
                 MyHistogram hist_generator(f1, bd, MyHistogram::HSV);
@@ -957,7 +952,7 @@ void StereoVision::StereoShow(bool is_rectified, const string& filename_traj)
                             Tracking3DInitialize( frame1_pre, frame1_s, bd1, frame2_pre, frame2_s, bd2,x0);
                             trajectory3D_homo.push_back(x0);
 
-                            setIdentity(P0, Scalar::all(0.1));
+                            setIdentity(P0, Scalar::all(1));
                         }
                     }
                     else
@@ -1345,7 +1340,7 @@ void StereoVision::Tracking3DKalman(Rect& bd0, Rect& bd1, Mat& pt_in, float vx, 
     const float alpha = 0.0;
 
     // process model
-	double lambda = 1;
+	float lambda = 1.0f;
  //   kf.transitionMatrix = (Mat_<float>(dim_state, dim_state)<<
 
  //                          1-lambda,0,0,0,lambda,0,0,
@@ -1368,13 +1363,10 @@ void StereoVision::Tracking3DKalman(Rect& bd0, Rect& bd1, Mat& pt_in, float vx, 
 		0, 0, 0, 0, 0, 0, 1
 		);
 
-
-
-
-    setIdentity(kf.processNoiseCov, Scalar::all(0.1));
+    setIdentity(kf.processNoiseCov, Scalar::all(1));
 //    kf.processNoiseCov.at<float>(0)= 10.0f;
 //    kf.processNoiseCov.at<float>(8)= 10.0f;
-//    kf.processNoiseCov.at<float>(24)= 0.0f;
+    //kf.processNoiseCov.at<float>(24)= 0.001f;
 
     // observation model
     Mat R = (Mat_<float>(4,dim_state) <<
@@ -1392,10 +1384,9 @@ void StereoVision::Tracking3DKalman(Rect& bd0, Rect& bd1, Mat& pt_in, float vx, 
 
 
     vconcat(P0*R/pt_in.at<float>(2), P1*R/pt_in.at<float>(2), kf.measurementMatrix);
-    setIdentity(kf.measurementNoiseCov, Scalar::all(0.1));
+    setIdentity(kf.measurementNoiseCov, Scalar::all(1));
  //   kf.measurementNoiseCov.at<float>(14)= 10;
 	//kf.measurementNoiseCov.at<float>(35) = 10;
-
 
 
     // set the initial state
@@ -1417,8 +1408,7 @@ void StereoVision::Tracking3DKalman(Rect& bd0, Rect& bd1, Mat& pt_in, float vx, 
     x1 = (Mat_<float>(3,1) << (bd1.br().x + bd1.tl().x)/2.0f , (bd1.br().y + bd1.tl().y)/2.0f, 1.0f);
 //    points0.push_back( static_cast<Point2f>((bd0.br()+bd0.tl())/2.0 ) );
 //    points1.push_back( static_cast<Point2f>((bd1.br()+bd1.tl())/2.0 ) );
-
-
+	
 
     // map to undistorted image
 	//Mat xx0(1, 1, CV_32FC2, Scalar(x0.at<float>(0), x0.at<float>(1)));
@@ -1447,12 +1437,13 @@ void StereoVision::Tracking3DKalman(Rect& bd0, Rect& bd1, Mat& pt_in, float vx, 
     pt_out = estimated.rowRange(Range(0,4));
     Pt = kf.errorCovPost;
 
+
     cout <<"===prediction" << endl;
     cout <<kf.statePre<<endl;
     cout <<"===update===" << endl;
-    cout << estimated<<endl;
+    cout << pt_out<<endl;
 //        cout << "estimated covariance"<<kf.errorCovPost<<endl;
-
+	
 
     /// project estimated to 2D image planes
 
@@ -1524,8 +1515,6 @@ void StereoVision::Tracking3DInitialize( cv::Mat& f1_pre, cv::Mat& f1_cur, cv::R
     matcher.match(description1, description2, matches_tmp);
 
 
-
-
     /// remove outliers by fundamental matrix
     Mat F;
     vector<Point2f> pt_set1;
@@ -1543,7 +1532,7 @@ void StereoVision::Tracking3DInitialize( cv::Mat& f1_pre, cv::Mat& f1_cur, cv::R
                      + (F.at<float>(1,0)* x.x + F.at<float>(1,1)* x.y + F.at<float>(1,2))*y.y
                      + (F.at<float>(2,0)* x.x + F.at<float>(2,1)* x.y + F.at<float>(2,2)) );
 
-        if(innerF < 1.5f){
+        if(innerF < 0.5f){
             matches.push_back(matches_tmp[i]);
             pt_set1.push_back(x);
             pt_set2.push_back(y);

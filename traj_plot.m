@@ -19,23 +19,20 @@ traj3D_set = cell(length(7:20),1);
 traj2D_set = cell(length(7:20),1);
 traj3D_velocity_set = cell(length(7:20),1);
 traj2D_velocity_set = cell(length(7:20),1);
-
+filepath = 'E:\\SenseEmotion\\Dataset_SenseEmotion2A\\trajs\\';
 for n = 15:15
-    traj3Dhomo = importdata(['Tracking3D_VC2015/x64/Release/baseline_s',num2str(n),'.txt']);
+    traj3Dhomo = importdata([filepath,'traj_Baseline-FreeRoute_subject',num2str(n),'.txt']);
     traj3D = zeros(length(traj3Dhomo(:,1)), 3);
     traj3D(:,1) = traj3Dhomo(:,1)./traj3Dhomo(:,4);
     traj3D(:,2) = traj3Dhomo(:,2)./traj3Dhomo(:,4);
     traj3D(:,3) = traj3Dhomo(:,3)./traj3Dhomo(:,4);
     
     traj2D = traj3D*V;
-
     traj3D_set{n} = traj3D;
     traj2D_set{n} = traj2D;
     
     traj3D_velocity_set{n} = sqrt(sum(abs(diff(traj3D)).^2,2));
     traj2D_velocity_set{n} = sqrt(sum(abs(diff(traj2D)).^2,2));
-    
-    
 end
     
 % traj3Dhomo2 = importdata('bin/Debug/traj_3Dhomo.txt');
@@ -58,6 +55,5 @@ for n = 15:15
 
     figure(2)
     plot3(traj3D_set{n}(:,1), traj3D_set{n}(:,2),traj3D_set{n}(:,3) );
-%     pause;
 end
 
