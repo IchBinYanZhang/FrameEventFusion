@@ -279,7 +279,7 @@ void StipDetector::DefineROI()
     case TemporalThreshold:
         cv::absdiff(_frame_current, _frame_previous, _roi);
 
-        cv::threshold(_roi, _roi,15,255,cv::THRESH_BINARY);
+        cv::threshold(_roi, _roi,25,255,cv::THRESH_BINARY);
 
 //        Close(_roi,_roi,3);
 

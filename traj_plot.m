@@ -19,9 +19,9 @@ traj3D_set = cell(length(7:20),1);
 traj2D_set = cell(length(7:20),1);
 traj3D_velocity_set = cell(length(7:20),1);
 traj2D_velocity_set = cell(length(7:20),1);
-filepath = 'E:\\SenseEmotion\\Dataset_SenseEmotion2A\\trajs\\';
-for n = 15:15
-    traj3Dhomo = importdata([filepath,'traj_Baseline-FreeRoute_subject',num2str(n),'.txt']);
+filepath = 'E:\\SenseEmotion\\FrameEventFusion\\Tracking3D_VC2015\\x64\\Release\\';
+for n =26:26
+    traj3Dhomo = importdata([filepath,'baseline_s',num2str(n),'.txt']);
     traj3D = zeros(length(traj3Dhomo(:,1)), 3);
     traj3D(:,1) = traj3Dhomo(:,1)./traj3Dhomo(:,4);
     traj3D(:,2) = traj3Dhomo(:,2)./traj3Dhomo(:,4);
@@ -47,7 +47,7 @@ end
 
 
 %% birdview trajectory show
-for n = 15:15
+for n = 26:26
     figure;
     plot(traj2D_set{n}(:,1), traj2D_set{n}(:,2));hold on;
     scatter(traj2D_set{n}(1:end-1,1), traj2D_set{n}(1:end-1,2),2, traj2D_velocity_set{n});

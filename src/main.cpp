@@ -8,6 +8,7 @@
 #include <opencv/cv.h>
 #include "FrameStream.h"
 #include "StereoVision.h"
+#include "FrameEventFuser.h"
 
 
 using namespace std;
@@ -135,6 +136,4 @@ int main(int argc, char** argv)
     /// <<<<
 
     return 0;
-
-
 }
